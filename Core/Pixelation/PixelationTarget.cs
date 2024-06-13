@@ -12,13 +12,11 @@ public enum RenderLayer
     UnderTiles,
     UnderNPCs,
     UnderProjectiles,
-    Dust
 }
 
 public class PixelationTarget(RenderLayer renderType)
 {
-    public readonly List<Action<SpriteBatch>> DrawPasses = [];
-
+    public readonly List<Action<SpriteBatch>> DrawActions = [];
     public readonly RenderLayer RenderType = renderType;
 
     /// <summary>
@@ -37,10 +35,10 @@ public class PixelationTarget(RenderLayer renderType)
         orig();
         RenderTargetBinding[] oldTargets = InitialTarget.SwapTo();
 
-        foreach (Action<SpriteBatch> pass in DrawPasses)
+        foreach (Action<SpriteBatch> action in DrawActions)
         {
             Main.spriteBatch.Begin();
-            pass(Main.spriteBatch);
+            action(Main.spriteBatch);
             Main.spriteBatch.End();
         }
 

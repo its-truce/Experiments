@@ -12,7 +12,6 @@ namespace Experiments.Content;
 public class Test : ModProjectile
 {
     private BezierCurve _curve;
-
     private Limb _limb;
     public override string Texture => Graphics.EmptyTexture;
 
@@ -37,14 +36,13 @@ public class Test : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
+        ModContent.GetInstance<PixelationSystem>().AddPixelationAction(DrawAction);
+        return false;
+
         void DrawAction(SpriteBatch spriteBatch)
         {
             _limb.Draw(Main.DiscoColor);
             _curve.Draw(100, color: Main.DiscoColor);
         }
-
-        ModContent.GetInstance<PixelationSystem>().AddPixelationPass(DrawAction);
-
-        return false;
     }
 }

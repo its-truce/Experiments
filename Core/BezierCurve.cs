@@ -8,9 +8,12 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Experiments.Core;
 
 /// <summary>
-///     A parametric curve which spans
+///     A parametric curve which spans the given control points.
 /// </summary>
 /// <param name="controlPoints">Points which define the curve</param>
+/// <remarks>
+///     For more information, see: <a href="https://wikipedia.org/wiki/Bezier_curve">this page</a>.
+/// </remarks>
 public class BezierCurve(params Vector2[] controlPoints)
 {
     /// <summary>
