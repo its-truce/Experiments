@@ -12,23 +12,30 @@ public enum RenderLayer
     UnderTiles,
     UnderNPCs,
     UnderProjectiles,
-    OverPlayers,
-    OverWiresUI
+    Dust
 }
 
 public class PixelationTarget(RenderLayer renderType)
 {
     public readonly List<Action<SpriteBatch>> DrawPasses = [];
-    
-    public RenderTarget2D ScalingTarget;
-    public RenderTarget2D FinalTarget;
 
     public readonly RenderLayer RenderType = renderType;
-    
-    public void DrawToScalingTarget(On_Main.orig_CheckMonoliths orig)
+
+    /// <summary>
+    ///     Draws the <see cref="InitialTarget" /> at half scale. It is then drawn at double scale, creating a pixelation
+    ///     effect.
+    /// </summary>
+    public RenderTarget2D HalfScaleTarget;
+
+    /// <summary>
+    ///     Initial render target for drawing the given <see cref="Action" />s.
+    /// </summary>
+    public RenderTarget2D InitialTarget;
+
+    public void DrawToInitialTarget(On_Main.orig_CheckMonoliths orig)
     {
         orig();
-        RenderTargetBinding[] oldTargets = ScalingTarget.SwapTo();
+        RenderTargetBinding[] oldTargets = InitialTarget.SwapTo();
 
         foreach (Action<SpriteBatch> pass in DrawPasses)
         {
@@ -36,20 +43,20 @@ public class PixelationTarget(RenderLayer renderType)
             pass(Main.spriteBatch);
             Main.spriteBatch.End();
         }
-        
+
         Main.graphics.GraphicsDevice.SetRenderTargets(oldTargets);
     }
 
-    public void DrawToFinalTarget(On_Main.orig_CheckMonoliths orig)
+    public void DrawToHalfScaleTarget(On_Main.orig_CheckMonoliths orig)
     {
         orig();
-        
+
         Main.spriteBatch.Begin();
-        RenderTargetBinding[] oldTargets = FinalTarget.SwapTo();
-        
-        Main.spriteBatch.Draw(ScalingTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None,
+        RenderTargetBinding[] oldTargets = HalfScaleTarget.SwapTo();
+
+        Main.spriteBatch.Draw(InitialTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None,
             0);
-        
+
         Main.spriteBatch.End();
         Main.graphics.GraphicsDevice.SetRenderTargets(oldTargets);
     }
