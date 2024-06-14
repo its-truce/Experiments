@@ -11,31 +11,31 @@ public enum RenderLayer
 {
     UnderTiles,
     UnderNPCs,
-    UnderProjectiles,
+    UnderProjectiles
 }
 
 public class PixelationTarget(RenderLayer renderType)
 {
-    public readonly List<Action<SpriteBatch>> DrawActions = [];
+    public readonly List<Action<SpriteBatch>> RenderActions = [];
     public readonly RenderLayer RenderType = renderType;
-
-    /// <summary>
-    ///     Draws the <see cref="InitialTarget" /> at half scale. It is then drawn at double scale, creating a pixelation
-    ///     effect.
-    /// </summary>
-    public RenderTarget2D HalfScaleTarget;
 
     /// <summary>
     ///     Initial render target for drawing the given <see cref="Action" />s.
     /// </summary>
-    public RenderTarget2D InitialTarget;
+    public RenderTarget2D PrimaryTarget;
 
-    public void DrawToInitialTarget(On_Main.orig_CheckMonoliths orig)
+    /// <summary>
+    ///     Draws the <see cref="PrimaryTarget" /> at half scale. It is then drawn at double scale, creating a pixelation
+    ///     effect.
+    /// </summary>
+    public RenderTarget2D ScaledTarget;
+
+    public void RenderToPrimaryTarget(On_Main.orig_CheckMonoliths orig)
     {
         orig();
-        RenderTargetBinding[] oldTargets = InitialTarget.SwapTo();
+        RenderTargetBinding[] oldTargets = PrimaryTarget.SwapTo();
 
-        foreach (Action<SpriteBatch> action in DrawActions)
+        foreach (Action<SpriteBatch> action in RenderActions)
         {
             Main.spriteBatch.Begin();
             action(Main.spriteBatch);
@@ -45,14 +45,14 @@ public class PixelationTarget(RenderLayer renderType)
         Main.graphics.GraphicsDevice.SetRenderTargets(oldTargets);
     }
 
-    public void DrawToHalfScaleTarget(On_Main.orig_CheckMonoliths orig)
+    public void RenderToScaledTarget(On_Main.orig_CheckMonoliths orig)
     {
         orig();
 
         Main.spriteBatch.Begin();
-        RenderTargetBinding[] oldTargets = HalfScaleTarget.SwapTo();
+        RenderTargetBinding[] oldTargets = ScaledTarget.SwapTo();
 
-        Main.spriteBatch.Draw(InitialTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None,
+        Main.spriteBatch.Draw(PrimaryTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None,
             0);
 
         Main.spriteBatch.End();

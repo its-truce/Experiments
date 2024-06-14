@@ -17,7 +17,7 @@ public class PixelationSystem : ModSystem
     {
         if (Main.dedServ)
             return;
-        
+
         Main.QueueMainThreadAction(() =>
         {
             _pixelationTargets.Add(new PixelationTarget(RenderLayer.UnderTiles));
@@ -26,14 +26,14 @@ public class PixelationSystem : ModSystem
 
             foreach (PixelationTarget pixelationTarget in _pixelationTargets)
             {
-                pixelationTarget.InitialTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
-                pixelationTarget.HalfScaleTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+                pixelationTarget.PrimaryTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+                pixelationTarget.ScaledTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
             }
         });
 
-        On_Main.CheckMonoliths += DrawToInitialTargets;
-        On_Main.CheckMonoliths += DrawToHalfScaleTargets;
-        
+        On_Main.CheckMonoliths += RenderToPrimaryTargets;
+        On_Main.CheckMonoliths += RenderToScaledTargets;
+
         On_Main.DrawCachedProjs += DrawPixelationTargets;
 
         Main.OnResolutionChanged += ResizeTargets;
@@ -43,55 +43,55 @@ public class PixelationSystem : ModSystem
     {
         if (Main.dedServ)
             return;
-        
+
         Main.QueueMainThreadAction(() =>
         {
             foreach (PixelationTarget pixelationTarget in _pixelationTargets)
             {
-                pixelationTarget.InitialTarget.Dispose();
-                pixelationTarget.HalfScaleTarget.Dispose();
+                pixelationTarget.PrimaryTarget.Dispose();
+                pixelationTarget.ScaledTarget.Dispose();
             }
         });
 
-        On_Main.CheckMonoliths -= DrawToInitialTargets;
-        On_Main.CheckMonoliths -= DrawToHalfScaleTargets;
-        
+        On_Main.CheckMonoliths -= RenderToPrimaryTargets;
+        On_Main.CheckMonoliths -= RenderToScaledTargets;
+
         On_Main.DrawCachedProjs -= DrawPixelationTargets;
-        
+
         Main.OnResolutionChanged -= ResizeTargets;
     }
 
-    private void DrawToInitialTargets(On_Main.orig_CheckMonoliths orig)
+    private void RenderToPrimaryTargets(On_Main.orig_CheckMonoliths orig)
     {
-        foreach (PixelationTarget pixelationTarget in _pixelationTargets) pixelationTarget.DrawToInitialTarget(orig);
+        foreach (PixelationTarget pixelationTarget in _pixelationTargets) pixelationTarget.RenderToPrimaryTarget(orig);
     }
 
-    private void DrawToHalfScaleTargets(On_Main.orig_CheckMonoliths orig)
+    private void RenderToScaledTargets(On_Main.orig_CheckMonoliths orig)
     {
-        foreach (PixelationTarget pixelationTarget in _pixelationTargets) pixelationTarget.DrawToHalfScaleTarget(orig);
+        foreach (PixelationTarget pixelationTarget in _pixelationTargets) pixelationTarget.RenderToScaledTarget(orig);
     }
-    
+
     private void ResizeTargets(Vector2 newSize)
     {
         foreach (PixelationTarget pixelationTarget in _pixelationTargets)
         {
-            pixelationTarget.InitialTarget.Dispose();
-            pixelationTarget.HalfScaleTarget.Dispose();
-            
-            pixelationTarget.InitialTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)newSize.X, (int)newSize.Y);
-            pixelationTarget.HalfScaleTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)newSize.X, (int)newSize.Y);
+            pixelationTarget.PrimaryTarget.Dispose();
+            pixelationTarget.ScaledTarget.Dispose();
+
+            pixelationTarget.PrimaryTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)newSize.X, (int)newSize.Y);
+            pixelationTarget.ScaledTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)newSize.X, (int)newSize.Y);
         }
     }
-    
+
     private static void DrawTarget(PixelationTarget target, bool endSpriteBatch)
     {
-        if (target.DrawActions.Count == 0)
+        if (target.RenderActions.Count == 0)
             return;
-        
-        target.DrawActions.Clear();
+
+        target.RenderActions.Clear();
 
         Main.spriteBatch.Restart(samplerState: SamplerState.PointClamp, end: endSpriteBatch);
-        Main.spriteBatch.Draw(target.HalfScaleTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None,
+        Main.spriteBatch.Draw(target.ScaledTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None,
             0);
 
         Main.spriteBatch.End();
@@ -102,7 +102,7 @@ public class PixelationSystem : ModSystem
     private void DrawPixelationTargets(On_Main.orig_DrawCachedProjs orig, Main self, List<int> projCache, bool startSpriteBatch)
     {
         orig(self, projCache, startSpriteBatch);
-        
+
         switch (projCache)
         {
             case var _ when projCache.Equals(Main.instance.DrawCacheProjsBehindNPCsAndTiles):
@@ -121,10 +121,15 @@ public class PixelationSystem : ModSystem
                 break;
         }
     }
-    
-    public void AddPixelationAction(Action<SpriteBatch> drawAction, RenderLayer renderType = RenderLayer.UnderProjectiles)
+
+    /// <summary>
+    ///     Adds an action to b
+    /// </summary>
+    /// <param name="drawAction"></param>
+    /// <param name="renderType"></param>
+    public void AddRenderAction(Action<SpriteBatch> drawAction, RenderLayer renderType = RenderLayer.UnderProjectiles)
     {
         PixelationTarget target = _pixelationTargets.Find(t => t.RenderType == renderType);
-        target.DrawActions.Add(drawAction);
+        target.RenderActions.Add(drawAction);
     }
 }

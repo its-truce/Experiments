@@ -4,6 +4,7 @@ using System.Linq;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Math = System.Math;
 
 namespace Experiments.Core;
 
