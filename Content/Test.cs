@@ -15,7 +15,7 @@ public class Test : ModProjectile
     private BezierCurve _curve;
     private Flock _flock;
     private Limb _limb;
-    public override string Texture => Graphics.EmptyTexture;
+    public override string Texture => Graphics.TextureDirectory + "EmptyTexture";
 
     public override void SetDefaults()
     {
@@ -27,8 +27,7 @@ public class Test : ModProjectile
     {
         _limb = new Limb(3, Projectile.Center, true, 75, 5, 10, 2);
         _curve = new BezierCurve(Projectile.Center, Main.MouseWorld, Projectile.Owner().Center);
-        _flock = new Flock(30, Projectile.Center, new Vector2(200, 200), new Vector2(1, 1),
-            maxForce: 0.75f, maxSpeed: 4, separationMult: 1.2f);
+        _flock = new Flock(100, Projectile.Center, new Vector2(50, 50), new Vector2(1, 1));
     }
 
     public override void AI()
@@ -50,8 +49,8 @@ public class Test : ModProjectile
 
         void DrawAction(SpriteBatch spriteBatch)
         {
-            // _limb.Draw(Main.DiscoColor);
-            // _curve.Draw(100, color: Main.DiscoColor);
+            _limb.Draw(Main.DiscoColor);
+            _curve.Draw(100, color: Main.DiscoColor);
             _flock.Draw(Main.DiscoColor);
         }
     }

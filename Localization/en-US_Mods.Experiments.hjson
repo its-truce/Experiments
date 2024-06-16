@@ -1,4 +1,5 @@
 Projectiles: {
 	Test.DisplayName: Test
 	PixelationTest.DisplayName: Pixelation Test
+	FishFlock.DisplayName: Fish Flock
 }

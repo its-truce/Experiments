@@ -3,7 +3,7 @@ using Terraria;
 
 namespace Experiments.Utils;
 
-public static class Math
+public static class Maths
 {
     public static void SetMagnitude(this ref Vector2 vector2, float magnitude)
     {

@@ -1,4 +1,5 @@
-﻿using Experiments.Utils;
+﻿using System.Linq;
+using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -6,46 +7,57 @@ namespace Experiments.Core.Boids;
 
 public class Flock
 {
-    private readonly float _alignmentMult;
-    private readonly Boid[] _boids;
-    private readonly float _cohesionMult;
+    protected float AlignmentMult;
+    protected float AvoidanceMult;
+    protected bool AvoidTiles;
+    protected Boid[] Boids;
+    protected float CohesionMult;
+    protected float SeparationMult;
 
-    private readonly float _separationMult;
+    protected bool SpriteFacingUpwards;
 
-    private readonly bool _spriteFacingUpwards;
-
-    public Flock(int size, Vector2 basePosition, Vector2 spawnRange, Vector2 velocityRange, int perceptionRadius = 100, float maxForce = 1, float maxSpeed = 4,
-        float separationMult = 1, float alignmentMult = 1, float cohesionMult = 1, Texture2D texture = null, bool spriteFacingUpwards = false)
+    public Flock(int size, Vector2 basePosition, Vector2 spawnRange, Vector2 velocityRange, float maxForce = 0.2f, float maxSpeed = 2, int perceptionRadius = 100,
+        float separationMult = 1, float alignmentMult = 1, float cohesionMult = 1, float avoidanceMult = 1.5f, Texture2D texture = null, bool spriteFacingUpwards = false,
+        bool avoidTiles = true)
     {
-        _separationMult = separationMult;
-        _alignmentMult = alignmentMult;
-        _cohesionMult = cohesionMult;
-        _spriteFacingUpwards = spriteFacingUpwards;
-        _boids = new Boid[size];
+        SeparationMult = separationMult;
+        AlignmentMult = alignmentMult;
+        CohesionMult = cohesionMult;
+        AvoidanceMult = avoidanceMult;
+        SpriteFacingUpwards = spriteFacingUpwards;
+        AvoidTiles = avoidTiles;
+        Boids = new Boid[size];
 
-        for (int i = 0; i < _boids.Length; i++)
+        for (int i = 0; i < Boids.Length; i++)
         {
             Vector2 spawnPos = basePosition + spawnRange.GetRandomVector();
-            _boids[i] = new Boid(spawnPos, velocityRange.GetRandomVector(), Vector2.Zero, perceptionRadius, maxForce, maxSpeed, texture);
+            Boids[i] = new Boid(spawnPos, velocityRange.GetRandomVector(), maxForce, maxSpeed, perceptionRadius, texture);
         }
     }
 
+    protected Flock()
+    {
+    }
+
+    public Vector2 AveragePosition => Boids.Aggregate(Vector2.Zero, (current, boid) => current + boid.Position) / Boids.Length;
+
     public void Update()
     {
-        foreach (Boid boid in _boids)
+        foreach (Boid boid in Boids)
         {
-            Vector2 separation = boid.CalculateForce(_boids, BehaviorType.Separation);
-            Vector2 alignment = boid.CalculateForce(_boids, BehaviorType.Alignment);
-            Vector2 cohesion = boid.CalculateForce(_boids, BehaviorType.Cohesion);
+            Vector2 separation = boid.CalculateForce(Boids, BehaviorType.Separation);
+            Vector2 alignment = boid.CalculateForce(Boids, BehaviorType.Alignment);
+            Vector2 cohesion = boid.CalculateForce(Boids, BehaviorType.Cohesion);
+            Vector2 avoidance = AvoidTiles ? boid.GetAvoidanceForce(30) : Vector2.Zero;
 
-            boid.Acceleration = separation * _separationMult + alignment * _alignmentMult + cohesion * _cohesionMult;
+            boid.Acceleration = separation * SeparationMult + alignment * AlignmentMult + cohesion * CohesionMult + avoidance * AvoidanceMult;
             boid.Update();
         }
     }
 
     public void Draw(Color? color = null)
     {
-        foreach (Boid boid in _boids)
-            boid.Draw(color, _spriteFacingUpwards);
+        foreach (Boid boid in Boids)
+            boid.Draw(color, SpriteFacingUpwards);
     }
 }

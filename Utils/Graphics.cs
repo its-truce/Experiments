@@ -3,15 +3,18 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ModLoader;
 
 namespace Experiments.Utils;
 
 public static class Graphics
 {
-    /// <summary>
-    ///     For easy access to the EmptyTexture file path.
-    /// </summary>
-    public const string EmptyTexture = $"{nameof(Experiments)}/Assets/Textures/EmptyTexture";
+    public const string TextureDirectory = $"{nameof(Experiments)}/Assets/Textures/";
+
+    public static Texture2D GetTexture(string name, string path = TextureDirectory)
+    {
+        return ModContent.Request<Texture2D>(path + name).Value;
+    }
 
     /// <summary>
     ///     Draws a straight line from one point to another.

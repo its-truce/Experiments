@@ -16,18 +16,49 @@ public enum BehaviorType
 }
 
 //TODO: document
-public class Boid(Vector2 position, Vector2 velocity, Vector2 acceleration, int perceptionRadius = 100, float maxForce = 1, float maxSpeed = 4, Texture2D texture = null)
+public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxSpeed, int perceptionRadius = 100, Texture2D texture = null)
 {
-    private Vector2 _position = position;
     private Vector2 _velocity = velocity;
-
-    public Vector2 Acceleration = acceleration;
+    public Vector2 Acceleration;
+    public Vector2 Position = position;
 
     public void Update()
     {
-        _position += _velocity;
+        Position += _velocity;
         _velocity += Acceleration;
         _velocity.Limit(maxSpeed);
+
+        Acceleration *= 0;
+    }
+
+    public Vector2 GetAvoidanceForce(int range = 15)
+    {
+        Vector2 force = Vector2.Zero;
+        Point tilePos = Position.ToTileCoordinates();
+
+        const int tileRange = 2;
+
+        for (int i = -tileRange; i < tileRange; i++)
+        for (int j = -tileRange; j < tileRange; j++)
+            if (WorldGen.InWorld(tilePos.X + i, tilePos.Y + j, 7))
+            {
+                Point currentTilePos = new(tilePos.X + i, tilePos.Y + j);
+                Tile tile = Framing.GetTileSafely(currentTilePos);
+
+                float distanceSquared = Vector2.DistanceSquared(Position, currentTilePos.ToWorldCoordinates());
+
+                if (distanceSquared < range * range && ((tile.HasTile && Main.tileSolid[tile.TileType]) || tile.LiquidAmount < 100))
+                    force += Position.DirectionFrom(currentTilePos.ToWorldCoordinates());
+            }
+
+        if (force != Vector2.Zero)
+        {
+            force.SetMagnitude(maxSpeed);
+            force -= _velocity;
+            force.Limit(maxForce);
+        }
+
+        return force;
     }
 
     public Vector2 CalculateForce(IEnumerable<Boid> boids, BehaviorType behaviorType)
@@ -40,14 +71,14 @@ public class Boid(Vector2 position, Vector2 velocity, Vector2 acceleration, int 
             if (boid == this)
                 continue;
 
-            float distanceSquared = Vector2.DistanceSquared(_position, boid._position);
+            float distanceSquared = Vector2.DistanceSquared(Position, boid.Position);
 
             if (distanceSquared < perceptionRadius * perceptionRadius)
             {
                 switch (behaviorType)
                 {
                     case BehaviorType.Separation:
-                        Vector2 difference = _position - boid._position;
+                        Vector2 difference = Position - boid.Position;
                         difference /= distanceSquared;
                         force += difference;
                         break;
@@ -57,8 +88,11 @@ public class Boid(Vector2 position, Vector2 velocity, Vector2 acceleration, int 
                         break;
 
                     case BehaviorType.Cohesion:
-                        force += boid._position - _position;
+                        force += boid.Position - Position;
                         break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(behaviorType), behaviorType, null);
                 }
 
                 count++;
@@ -83,7 +117,7 @@ public class Boid(Vector2 position, Vector2 velocity, Vector2 acceleration, int 
         Color drawColor = color ?? Color.White;
         float offset = spriteFacingUpwards ? MathF.PI / 2 : 0;
 
-        Main.EntitySpriteDraw(texture, _position - Main.screenPosition, null, drawColor, _velocity.ToRotation() + offset, texture.Size() / 2,
+        Main.EntitySpriteDraw(texture, Position - Main.screenPosition, null, drawColor, _velocity.ToRotation() + offset, texture.Size() / 2,
             1f, SpriteEffects.None);
     }
 }
