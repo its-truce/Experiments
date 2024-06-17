@@ -23,4 +23,9 @@ public static class Maths
     {
         return new Vector2(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y));
     }
+
+    public static Vector3 GetRandomVector(this Vector3 range)
+    {
+        return new Vector3(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y), Main.rand.NextFloat(-range.Z, range.Z));
+    }
 }

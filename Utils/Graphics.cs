@@ -67,10 +67,26 @@ public static class Graphics
         SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null,
         Matrix? transformMatrix = null, bool end = true)
     {
-        if (end)
-            spriteBatch.End();
+        if (end) spriteBatch.End();
 
         spriteBatch.Begin(spriteSortMode, blendState ?? BlendState.AlphaBlend, samplerState ?? Main.DefaultSamplerState, depthStencilState ?? DepthStencilState.None,
             rasterizerState ?? Main.Rasterizer, effect, transformMatrix ?? Main.Transform);
+    }
+
+    public static Color ToColor(this Vector3 vector3)
+    {
+        return new Color(vector3.X, vector3.Y, vector3.Z);
+    }
+
+    public static Color AddColors(Color color, Color color2)
+    {
+        Color sumColor = new(
+            Math.Clamp(color.R + color2.R, 0, 255),
+            Math.Clamp(color.G + color2.G, 0, 255),
+            Math.Clamp(color.B + color2.B, 0, 255),
+            Math.Clamp(color.A + color2.A, 0, 255)
+        );
+
+        return sumColor;
     }
 }

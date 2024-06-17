@@ -56,7 +56,7 @@ public class FishFlock : ModProjectile
             Graphics.GetTexture("Fish4")
         ];
 
-        _fish = new Fish(30, Projectile.Center, new Vector2(100, 100), new Vector2(1, 1), textures, separationMult: 1.5f);
+        _fish = new Fish(30, Projectile.Center, new Vector2(75, 75), new Vector2(2, 2), textures);
     }
 
     public override void AI()

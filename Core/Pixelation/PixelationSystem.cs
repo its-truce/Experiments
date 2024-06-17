@@ -123,7 +123,7 @@ public class PixelationSystem : ModSystem
     }
 
     /// <summary>
-    ///     Adds an action to b
+    ///     Adds an action for pixelation
     /// </summary>
     /// <param name="drawAction"></param>
     /// <param name="renderType"></param>
