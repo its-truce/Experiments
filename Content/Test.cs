@@ -27,7 +27,7 @@ public class Test : ModProjectile
     {
         _limb = new Limb(3, Projectile.Center, true, 75, 5, 10, 2);
         _curve = new BezierCurve(Projectile.Center, Main.MouseWorld, Projectile.Owner().Center);
-        _flock = new Flock(100, Projectile.Center, new Vector2(50, 50), new Vector2(1, 1));
+        _flock = new Flock(100, Projectile.Center, new Vector2(200, 200), new Vector2(2, 2));
     }
 
     public override void AI()
@@ -44,7 +44,7 @@ public class Test : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
-        ModContent.GetInstance<PixelationSystem>().AddRenderAction(DrawAction);
+        PixelationSystem.Instance.AddRenderAction(DrawAction);
         return false;
 
         void DrawAction(SpriteBatch spriteBatch)

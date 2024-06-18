@@ -11,10 +11,7 @@ public static class Graphics
 {
     public const string TextureDirectory = $"{nameof(Experiments)}/Assets/Textures/";
 
-    public static Texture2D GetTexture(string name, string path = TextureDirectory)
-    {
-        return ModContent.Request<Texture2D>(path + name).Value;
-    }
+    public static Texture2D GetTexture(string name, string path = TextureDirectory) => ModContent.Request<Texture2D>(path + name).Value;
 
     /// <summary>
     ///     Draws a straight line from one point to another.
@@ -73,10 +70,7 @@ public static class Graphics
             rasterizerState ?? Main.Rasterizer, effect, transformMatrix ?? Main.Transform);
     }
 
-    public static Color ToColor(this Vector3 vector3)
-    {
-        return new Color(vector3.X, vector3.Y, vector3.Z);
-    }
+    public static Color ToColor(this Vector3 vector3) => new(vector3.X * 255, vector3.Y * 255, vector3.Z * 255);
 
     public static Color AddColors(Color color, Color color2)
     {

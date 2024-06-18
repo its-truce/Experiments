@@ -13,15 +13,19 @@ namespace Experiments.Content;
 public class Fish : Flock
 {
     public Fish(int size, Vector2 basePosition, Vector2 spawnRange, Vector2 velocityRange, Texture2D[] textures, float maxForce = 0.2f, float maxSpeed = 2,
-        int perceptionRadius = 100,
-        float separationMult = 1, float alignmentMult = 1, float cohesionMult = 1, float avoidanceMult = 1.5f, bool spriteFacingUpwards = false, bool avoidTiles = true)
+        int perceptionRadius = 100, float separationMult = 1, float alignmentMult = 1, float cohesionMult = 1, float avoidanceMult = 1.5f,
+        bool spriteFacingUpwards = false,
+        bool avoidTiles = true, bool avoidAir = true)
     {
+        MaxForce = maxForce;
+        MaxSpeed = maxSpeed;
         SeparationMult = separationMult;
         AlignmentMult = alignmentMult;
         CohesionMult = cohesionMult;
         AvoidanceMult = avoidanceMult;
         SpriteFacingUpwards = spriteFacingUpwards;
         AvoidTiles = avoidTiles;
+        AvoidAir = avoidAir;
         Boids = new Boid[size];
 
         for (int i = 0; i < Boids.Length; i++)
@@ -71,7 +75,8 @@ public class FishFlock : ModProjectile
         {
             SoundEngine.PlaySound(SoundID.SplashWeak, _fish.AveragePosition);
 
-            for (int i = 0; i < 20; i++) Dust.NewDust(Projectile.Center, 100, 100, DustID.BreatheBubble, Main.rand.NextFloat(-1, 1), Main.rand.NextFloat(-1, 1));
+            for (int i = 0; i < 20; i++)
+                Dust.NewDust(Projectile.Center, 100, 100, DustID.BreatheBubble, Main.rand.NextFloat(-1, 1), Main.rand.NextFloat(-1, 1));
         }
     }
 

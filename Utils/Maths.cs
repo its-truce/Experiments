@@ -19,13 +19,8 @@ public static class Maths
             vector2.SetMagnitude(magnitude);
     }
 
-    public static Vector2 GetRandomVector(this Vector2 range)
-    {
-        return new Vector2(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y));
-    }
+    public static Vector2 GetRandomVector(this Vector2 range) => new(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y));
 
-    public static Vector3 GetRandomVector(this Vector3 range)
-    {
-        return new Vector3(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y), Main.rand.NextFloat(-range.Z, range.Z));
-    }
+    public static Vector3 GetRandomVector(this Vector3 range) =>
+        new(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y), Main.rand.NextFloat(-range.Z, range.Z));
 }

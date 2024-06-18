@@ -11,6 +11,8 @@ namespace Experiments.Core.Pixelation;
 
 public class PixelationSystem : ModSystem
 {
+    public static PixelationSystem Instance => ModContent.GetInstance<PixelationSystem>();
+    
     private readonly List<PixelationTarget> _pixelationTargets = [];
 
     public override void Load()

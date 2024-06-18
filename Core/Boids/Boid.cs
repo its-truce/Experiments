@@ -18,20 +18,26 @@ public enum BehaviorType
 //TODO: document
 public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxSpeed, int perceptionRadius = 100, Texture2D texture = null)
 {
-    private Vector2 _velocity = velocity;
     public Vector2 Acceleration;
     public Vector2 Position = position;
+    public Vector2 Velocity = velocity;
 
     public void Update()
     {
-        Position += _velocity;
-        _velocity += Acceleration;
-        _velocity.Limit(maxSpeed);
+        Position += Velocity;
+        Velocity += Acceleration;
+        Velocity.Limit(maxSpeed);
 
         Acceleration *= 0;
     }
 
-    public Vector2 GetAvoidanceForce(int range = 15)
+    /// <summary>
+    ///     Calculates the avoidance force for the boid based on the given range and air avoidance flag.
+    /// </summary>
+    /// <param name="range">The range within which tiles are checked for avoidance. Default is 15.</param>
+    /// <param name="avoidAir">Flag indicating whether air tiles should be avoided. Default is false.</param>
+    /// <returns>The calculated avoidance force vector.</returns>
+    public Vector2 GetAvoidanceForce(int range = 15, bool avoidAir = false)
     {
         Vector2 force = Vector2.Zero;
         Point tilePos = Position.ToTileCoordinates();
@@ -40,6 +46,7 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
 
         for (int i = -tileRange; i < tileRange; i++)
         for (int j = -tileRange; j < tileRange; j++)
+        {
             if (WorldGen.InWorld(tilePos.X + i, tilePos.Y + j, 7))
             {
                 Point currentTilePos = new(tilePos.X + i, tilePos.Y + j);
@@ -47,20 +54,28 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
 
                 float distanceSquared = Vector2.DistanceSquared(Position, currentTilePos.ToWorldCoordinates());
 
-                if (distanceSquared < range * range && ((tile.HasTile && Main.tileSolid[tile.TileType]) || tile.LiquidAmount < 100))
+                bool liquidCheck = avoidAir ? tile.LiquidAmount < 100 : tile.LiquidAmount > 0;
+                if (distanceSquared < range * range && ((tile.HasTile && Main.tileSolid[tile.TileType]) || liquidCheck))
                     force += Position.DirectionFrom(currentTilePos.ToWorldCoordinates());
             }
+        }
 
         if (force != Vector2.Zero)
         {
             force.SetMagnitude(maxSpeed);
-            force -= _velocity;
+            force -= Velocity;
             force.Limit(maxForce);
         }
 
         return force;
     }
 
+    /// <summary>
+    ///     Calculates the force vector for the boid based on the behavior type and the positions of neighboring boids.
+    /// </summary>
+    /// <param name="boids">The collection of boids to iterate through</param>
+    /// <param name="behaviorType">Type of behavior to calculate force for</param>
+    /// <returns></returns>
     public Vector2 CalculateForce(IEnumerable<Boid> boids, BehaviorType behaviorType)
     {
         Vector2 force = Vector2.Zero;
@@ -84,15 +99,12 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
                         break;
 
                     case BehaviorType.Alignment:
-                        force += boid._velocity;
+                        force += boid.Velocity;
                         break;
 
                     case BehaviorType.Cohesion:
                         force += boid.Position - Position;
                         break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(behaviorType), behaviorType, null);
                 }
 
                 count++;
@@ -104,7 +116,7 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
             force /= count;
 
             force.SetMagnitude(maxSpeed);
-            force -= _velocity;
+            force -= Velocity;
             force.Limit(maxForce);
         }
 
@@ -117,7 +129,7 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
         Color drawColor = color ?? Color.White;
         float offset = spriteFacingUpwards ? MathF.PI / 2 : 0;
 
-        Main.EntitySpriteDraw(texture, Position - Main.screenPosition, null, drawColor, _velocity.ToRotation() + offset, texture.Size() / 2,
+        Main.EntitySpriteDraw(texture, Position - Main.screenPosition, null, drawColor, Velocity.ToRotation() + offset, texture.Size() / 2,
             1f, SpriteEffects.None);
     }
 }
