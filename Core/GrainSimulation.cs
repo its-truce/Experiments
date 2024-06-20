@@ -54,7 +54,7 @@ public class GrainSimulation(Rectangle grid, int scale = 2, bool tileCollision =
 
         _currentGrid = _nextGrid;
 
-        Point gridIndices = ToGridIndices(Main.MouseWorld) + new Point(2, 2);
+        Point gridIndices = ToGridIndices(Main.MouseWorld) + new Point(scale, scale);
         if (grid.Contains(Main.MouseWorld.ToPoint()) && Main.mouseLeft && !Main.mouseLeftRelease && !CheckTiles(gridIndices.X, gridIndices.Y))
         {
             _currentGrid[gridIndices.X, gridIndices.Y] = _colorMult;
@@ -84,5 +84,6 @@ public class GrainSimulation(Rectangle grid, int scale = 2, bool tileCollision =
 
     private Point ToGridIndices(Vector2 vector2) => new((vector2.ToPoint().X - grid.X) / scale, (vector2.ToPoint().Y - grid.Y) / scale);
 
-    private bool CheckTiles(int i, int j) => tileCollision && Framing.GetTileSafely(ToGridCoordinates(new Point(i, j)).ToVector2() - new Vector2(scale * 2)).HasTile;
+    private bool CheckTiles(int i, int j) =>
+        tileCollision && Framing.GetTileSafely(ToGridCoordinates(new Point(i, j)).ToVector2() - new Vector2(scale * 2)).HasTile;
 }

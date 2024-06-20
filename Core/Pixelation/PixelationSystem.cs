@@ -12,7 +12,7 @@ namespace Experiments.Core.Pixelation;
 public class PixelationSystem : ModSystem
 {
     public static PixelationSystem Instance => ModContent.GetInstance<PixelationSystem>();
-    
+
     private readonly List<PixelationTarget> _pixelationTargets = [];
 
     public override void Load()
@@ -127,8 +127,8 @@ public class PixelationSystem : ModSystem
     /// <summary>
     ///     Adds an action for pixelation
     /// </summary>
-    /// <param name="drawAction"></param>
-    /// <param name="renderType"></param>
+    /// <param name="drawAction">The action to invoke</param>
+    /// <param name="renderType">Render layer to draw to</param>
     public void AddRenderAction(Action<SpriteBatch> drawAction, RenderLayer renderType = RenderLayer.UnderProjectiles)
     {
         PixelationTarget target = _pixelationTargets.Find(t => t.RenderType == renderType);
