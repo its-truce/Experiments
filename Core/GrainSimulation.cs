@@ -76,7 +76,7 @@ public class GrainSimulation(Rectangle grid, int scale = 2, bool tileCollision =
         for (int j = 0; j < _rows; j++)
         {
             Main.EntitySpriteDraw(texture, ToGridCoordinates(new Point(i, j)).ToVector2() - Main.screenPosition, new Rectangle(0, 0, 1, 1),
-                _currentGrid[i, j] > 0 ? drawColor * _currentGrid[i, j] : bgColor, 0, new Vector2(0.5f) * scale, scale, SpriteEffects.None);
+                _currentGrid[i, j] > 0 ? drawColor * _currentGrid[i, j] : bgColor, 0, new Vector2(scale / 2), scale, SpriteEffects.None);
         }
     }
 

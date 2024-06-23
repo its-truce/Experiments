@@ -3,4 +3,5 @@ Projectiles: {
 	PixelationTest.DisplayName: Pixelation Test
 	FishFlock.DisplayName: Fish Flock
 	Sand.DisplayName: Sand
+	Path.DisplayName: Path
 }
