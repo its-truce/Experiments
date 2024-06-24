@@ -21,17 +21,17 @@ public class Path : ModProjectile
 
     public override void OnSpawn(IEntitySource source)
     {
-        _finder = new Pathfinding(Projectile.Center.ToTileCoordinates(), Projectile.Owner().Center.ToTileCoordinates());
+        _finder = new Pathfinding(Projectile.Center.ToTileCoordinates().ToPoint16(), Projectile.Owner().Center.ToTileCoordinates().ToPoint16());
     }
 
     public override void AI()
     {
-        _finder.Update(HeuristicType.Euclidean);
+        _finder.Update();
     }
 
     public override bool PreDraw(ref Color lightColor)
     {
-        _finder.Draw();
+        _finder.Draw(Color.Red);
         return false;
     }
 }

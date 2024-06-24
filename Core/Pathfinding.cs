@@ -1,37 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Experiments.Utils;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
-using Terraria.ID;
+using Terraria.DataStructures;
 
 namespace Experiments.Core;
 
 public enum HeuristicType
 {
     Manhattan,
-    Euclidean
+    Euclidean,
+    Chebyshev,
+    Octile
 }
 
-public class Node(Point position)
+public class Node(Point16 position, float gCost = float.MaxValue)
 {
-    public readonly Point Position = position;
+    public readonly List<Node> Neighbors = [];
+    public readonly Point16 Position = position;
 
-    public float GCost;
+    public float GCost = gCost;
     public float HCost;
-    public float FCost => GCost + HCost;
 
     public Node Previous;
-
-    public readonly List<Node> Neighbours = [];
+    public float FCost => GCost + HCost;
 
     public bool IsWall => Framing.GetTileSafely(Position).HasTile && Main.tileSolid[Framing.GetTileSafely(Position).TileType];
-    public bool IsStranded => !Neighbours.Any(t => t.IsWall);
+    public bool IsStranded => Neighbors.Count <= 0 || !Neighbors.Any(t => t.IsWall);
 
-    public void AddNeighbours()
+    public void AddNeighbors()
     {
+        if (Neighbors.Count > 0) return;
+
         for (int di = -1; di <= 1; di++)
         {
             for (int dj = -1; dj <= 1; dj++)
@@ -39,85 +41,107 @@ public class Node(Point position)
                 // Skip the center point
                 if (di == 0 && dj == 0) continue;
 
-                Point point = new Point(Position.X + di, Position.Y + dj);
+                Point16 point = new(Position.X + di, Position.Y + dj);
 
                 if (WorldGen.InWorld(point.X, point.Y))
-                    Neighbours.Add(new Node(point));
+                    Neighbors.Add(new Node(point));
             }
         }
     }
 }
 
-public class Pathfinding(Point start, Point end)
+public class Pathfinding(Point16 start, Point16 end)
 {
-    private readonly List<Node> _openSet = [new Node(start)];
-    private readonly List<Node> _closedSet = [];
+    private readonly HashSet<Node> _closedSet = [];
+    private readonly List<Node> _openSet = [new Node(start, 0)];
+    private Node _current;
+    private bool _done;
     private List<Node> _path = [];
 
-    private static float GetHeuristic(Point start, Point end, HeuristicType heuristicType = HeuristicType.Manhattan) =>
-        heuristicType == HeuristicType.Euclidean ? start.ToVector2().Distance(end.ToVector2()) : Math.Abs(start.X - end.X) + Math.Abs(start.Y - end.Y);
-
-    public void Update(HeuristicType heuristicType = HeuristicType.Manhattan)
+    private static float GetHeuristic(Point16 start, Point16 end, HeuristicType heuristicType = HeuristicType.Octile)
     {
-        Node current = _openSet[0];
+        float heuristic = 0;
+
+        switch (heuristicType)
+        {
+            case HeuristicType.Euclidean:
+                heuristic = start.Distance(end);
+                break;
+
+            case HeuristicType.Manhattan:
+                heuristic = Math.Abs(start.X - end.X) + Math.Abs(start.Y - end.Y);
+                break;
+
+            case HeuristicType.Chebyshev:
+                heuristic = Math.Max(Math.Abs(start.X - end.X), Math.Abs(start.Y - end.Y));
+                break;
+
+            case HeuristicType.Octile:
+                int dx = Math.Abs(start.X - end.X);
+                int dy = Math.Abs(start.Y - end.Y);
+                const float sqrt2 = 1.4142135623730951f; // Square root of 2
+
+                heuristic = Math.Max(dx, dy) + (sqrt2 - 1) * Math.Min(dx, dy);
+                break;
+        }
+
+        return heuristic;
+    }
+
+    public void Update(HeuristicType heuristicType = HeuristicType.Octile)
+    {
+        if (_done)
+        {
+            Main.NewText("done");
+            return;
+        }
 
         if (_openSet.Count > 0)
         {
-            foreach (Node node in _openSet)
+            _current = _openSet.MinBy(node => node.FCost);
+
+            if (_current.Position == end)
+                _done = true;
+
+            _openSet.Remove(_current);
+            _closedSet.Add(_current);
+
+            _current.AddNeighbors();
+            foreach (Node neighbour in _current.Neighbors)
             {
-                if (node.FCost < current.FCost)
-                    current = node;
-            }
-
-            if (current.Position == end)
-                Main.NewText("done :)");
-
-            _openSet.Remove(current);
-            _closedSet.Add(current);
-
-            current.AddNeighbours();
-            foreach (Node neighbour in current.Neighbours)
-            {
-                neighbour.AddNeighbours();
-
                 if (_closedSet.Contains(neighbour) || neighbour.IsWall) continue;
 
-                float tempGCost = current.GCost + GetHeuristic(neighbour.Position, current.Position, heuristicType);
-                bool newPath = (_openSet.Contains(neighbour) && tempGCost < neighbour.GCost) || !_openSet.Contains(neighbour);
-                Main.NewText(neighbour.GCost);
+                neighbour.AddNeighbors();
 
-                neighbour.GCost = tempGCost;
+                float tempGCost = _current.GCost + GetHeuristic(neighbour.Position, _current.Position, heuristicType);
 
-                if (!_openSet.Contains(neighbour))
-                    _openSet.Add(neighbour);
-
-                if (newPath)
+                if (tempGCost < neighbour.GCost)
                 {
+                    neighbour.GCost = tempGCost;
                     neighbour.HCost = GetHeuristic(neighbour.Position, end, heuristicType);
-                    neighbour.Previous = current;
+                    neighbour.Previous = _current;
+
+                    if (!_openSet.Contains(neighbour))
+                        _openSet.Add(neighbour);
                 }
             }
         }
         else
             Main.NewText("no solution :(");
 
-        _path = [current];
-        while (current.Previous != null)
+        _path = [_current];
+        while (_current.Previous != null)
         {
-            _path.Add(current.Previous);
-            current = current.Previous;
+            _path.Add(_current.Previous);
+            _current = _current.Previous;
         }
+
+        _path.Reverse();
     }
 
-    public void Draw(Color? color = null, float scale = 16f)
+    public void Draw(Color? color = null, float scale = 8f)
     {
-        Color drawColor = color ?? Color.White;
-        Texture2D texture = TextureAssets.MagicPixel.Value;
-
-        foreach (Node node in _path)
-        {
-            Main.spriteBatch.Draw(texture, node.Position.ToWorldCoordinates() - Main.screenPosition, new Rectangle(0, 0, 16, 16), drawColor,
-                0, new Vector2(scale / 2), scale / 16, SpriteEffects.None, 0);
-        }
+        for (int i = 0; i < _path.Count - 1; i++)
+            Graphics.DrawLine(_path[i].Position.ToWorldCoordinates(), _path[i + 1].Position.ToWorldCoordinates(), color: color, thickness: scale);
     }
 }

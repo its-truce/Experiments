@@ -1,5 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.DataStructures;
 
 namespace Experiments.Utils;
 
@@ -23,4 +25,14 @@ public static class Maths
 
     public static Vector3 GetRandomVector(this Vector3 range) =>
         new(Main.rand.NextFloat(-range.X, range.X), Main.rand.NextFloat(-range.Y, range.Y), Main.rand.NextFloat(-range.Z, range.Z));
+
+    public static Point16 ToPoint16(this Point point) => new(point);
+
+    public static float Distance(this Point16 point1, Point16 point2)
+    {
+        int differenceX = point1.X - point2.X;
+        int differenceY = point1.Y - point2.Y;
+
+        return (float)Math.Sqrt(differenceX * differenceX + differenceY * differenceY);
+    }
 }
