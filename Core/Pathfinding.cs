@@ -16,21 +16,21 @@ public enum HeuristicType
     Octile
 }
 
-public class Node(Point16 position, float gCost = float.MaxValue)
+public class Node(Point16 position, float gCost = float.MaxValue, float fCost = float.MaxValue)
 {
     public readonly List<Node> Neighbors = [];
     public readonly Point16 Position = position;
 
     public float GCost = gCost;
+    public float FCost = fCost;
     public float HCost;
 
     public Node Previous;
-    public float FCost => GCost + HCost;
 
     public bool IsWall => Framing.GetTileSafely(Position).HasTile && Main.tileSolid[Framing.GetTileSafely(Position).TileType];
     public bool IsStranded => Neighbors.Count <= 0 || !Neighbors.Any(t => t.IsWall);
 
-    public void AddNeighbors()
+    public void AddNeighbors(Dictionary<Point16, Node> nodeDictionary)
     {
         if (Neighbors.Count > 0) return;
 
@@ -44,19 +44,40 @@ public class Node(Point16 position, float gCost = float.MaxValue)
                 Point16 point = new(Position.X + di, Position.Y + dj);
 
                 if (WorldGen.InWorld(point.X, point.Y))
-                    Neighbors.Add(new Node(point));
+                {
+                    if (!nodeDictionary.TryGetValue(point, out Node neighbor))
+                    {
+                        neighbor = new Node(point);
+                        nodeDictionary[point] = neighbor;
+                    }
+
+                    if (!neighbor.IsWall)
+                    {
+                        Neighbors.Add(neighbor);
+                    }
+                }
             }
         }
     }
 }
 
-public class Pathfinding(Point16 start, Point16 end)
+public class Pathfinding
 {
+    private readonly Dictionary<Point16, Node> _nodeDictionary;
+    private readonly List<Node> _openSet;
     private readonly HashSet<Node> _closedSet = [];
-    private readonly List<Node> _openSet = [new Node(start, 0)];
+
     private Node _current;
     private bool _done;
     private List<Node> _path = [];
+    private readonly Point16 _end;
+
+    public Pathfinding(Point16 start, Point16 end)
+    {
+        _end = end;
+        _openSet = [new Node(start, 0, GetHeuristic(start, end))];
+        _nodeDictionary = new Dictionary<Point16, Node> { [start] = _openSet[0] };
+    }
 
     private static float GetHeuristic(Point16 start, Point16 end, HeuristicType heuristicType = HeuristicType.Octile)
     {
@@ -79,7 +100,7 @@ public class Pathfinding(Point16 start, Point16 end)
             case HeuristicType.Octile:
                 int dx = Math.Abs(start.X - end.X);
                 int dy = Math.Abs(start.Y - end.Y);
-                const float sqrt2 = 1.4142135623730951f; // Square root of 2
+                const float sqrt2 = 1.4142135623730951f;
 
                 heuristic = Math.Max(dx, dy) + (sqrt2 - 1) * Math.Min(dx, dy);
                 break;
@@ -90,39 +111,37 @@ public class Pathfinding(Point16 start, Point16 end)
 
     public void Update(HeuristicType heuristicType = HeuristicType.Octile)
     {
-        if (_done)
-        {
-            Main.NewText("done");
-            return;
-        }
+        if (_done) return;
 
         if (_openSet.Count > 0)
         {
             _current = _openSet.MinBy(node => node.FCost);
+            Main.NewText(_closedSet.Count);
 
-            if (_current.Position == end)
+            if (_current.Position == _end)
                 _done = true;
 
             _openSet.Remove(_current);
             _closedSet.Add(_current);
 
-            _current.AddNeighbors();
-            foreach (Node neighbour in _current.Neighbors)
+            _current.AddNeighbors(_nodeDictionary);
+
+            foreach (Node neighbor in _current.Neighbors)
             {
-                if (_closedSet.Contains(neighbour) || neighbour.IsWall) continue;
+                Main.NewText(_closedSet.Contains(neighbor));
+                if (_closedSet.Contains(neighbor) || neighbor.IsWall) continue;
 
-                neighbour.AddNeighbors();
+                float gScore = _current.GCost + GetHeuristic(neighbor.Position, _current.Position, heuristicType);
 
-                float tempGCost = _current.GCost + GetHeuristic(neighbour.Position, _current.Position, heuristicType);
-
-                if (tempGCost < neighbour.GCost)
+                if (gScore < neighbor.GCost)
                 {
-                    neighbour.GCost = tempGCost;
-                    neighbour.HCost = GetHeuristic(neighbour.Position, end, heuristicType);
-                    neighbour.Previous = _current;
+                    neighbor.GCost = gScore;
+                    neighbor.HCost = GetHeuristic(neighbor.Position, _end, heuristicType);
+                    neighbor.FCost = neighbor.GCost + neighbor.HCost;
+                    neighbor.Previous = _current;
 
-                    if (!_openSet.Contains(neighbour))
-                        _openSet.Add(neighbour);
+                    if (!_openSet.Contains(neighbor))
+                        _openSet.Add(neighbor);
                 }
             }
         }
@@ -142,6 +161,7 @@ public class Pathfinding(Point16 start, Point16 end)
     public void Draw(Color? color = null, float scale = 8f)
     {
         for (int i = 0; i < _path.Count - 1; i++)
-            Graphics.DrawLine(_path[i].Position.ToWorldCoordinates(), _path[i + 1].Position.ToWorldCoordinates(), color: color, thickness: scale);
+            Graphics.DrawLine(_path[i].Position.ToWorldCoordinates(), _path[i + 1].Position.ToWorldCoordinates(), color: _done ? Color.Green : Color.Red,
+                thickness: scale);
     }
 }
