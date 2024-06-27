@@ -1,4 +1,5 @@
-﻿using Experiments.Core;
+﻿using Experiments.Core.Pathfinding;
+using Experiments.Core.Pixelation;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -9,7 +10,7 @@ namespace Experiments.Content;
 
 public class Path : ModProjectile
 {
-    private Pathfinding _finder;
+    private Pathfinder _finder;
     public override string Texture => Graphics.TextureDirectory + "EmptyTexture";
 
     public override void SetDefaults()
@@ -21,17 +22,18 @@ public class Path : ModProjectile
 
     public override void OnSpawn(IEntitySource source)
     {
-        _finder = new Pathfinding(Projectile.Center.ToTileCoordinates().ToPoint16(), Projectile.Owner().Center.ToTileCoordinates().ToPoint16());
+        _finder = new Pathfinder(Projectile.Center.ToTileCoordinates().ToPoint16(), Projectile.Owner().Center.ToTileCoordinates().ToPoint16());
     }
 
     public override void AI()
     {
+        _finder.SetTarget(Projectile.Owner().MountedCenter.ToTileCoordinates().ToPoint16());
         _finder.Update();
     }
 
     public override bool PreDraw(ref Color lightColor)
     {
-        _finder.Draw(Color.Red);
+        PixelationSystem.Instance.AddRenderAction(_ => { _finder.Draw(); });
         return false;
     }
 }
