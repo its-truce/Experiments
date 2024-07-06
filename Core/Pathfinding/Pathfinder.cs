@@ -27,12 +27,17 @@ public class Pathfinder
     private readonly Point16 _start;
     private Node _current;
 
-    private bool _done;
+    public bool Done;
     private Dictionary<Point16, Node> _nodeDictionary;
     private bool _noSolution;
 
     private List<Node> _openSet;
-    private List<Node> _path;
+
+    /// <summary>
+    ///     The current path of the pathfinder. Null if no solution was found.
+    /// </summary>
+    public List<Node> Path;
+
     private Point16 _target;
 
     public Pathfinder(Point16 start, Point16 target, bool ignorePlatforms = false)
@@ -42,7 +47,7 @@ public class Pathfinder
         _ignorePlatforms = ignorePlatforms;
 
         _closedSet = [];
-        _path = [];
+        Path = [];
         _openSet = [new Node(start, 0, GetHeuristic(start, target), ignorePlatforms)];
 
         _nodeDictionary = new Dictionary<Point16, Node> { [start] = _openSet[0] };
@@ -81,7 +86,10 @@ public class Pathfinder
 
     public void Update(HeuristicType heuristicType = HeuristicType.Octile)
     {
-        if (_done) return;
+        if (_noSolution)
+            Path = null;
+
+        if (Done) return;
 
         if (_openSet.Count > 0)
         {
@@ -95,7 +103,7 @@ public class Pathfinder
                 if (_nodeDictionary.TryGetValue(_target, out Node node))
                     _current = node;
 
-                _done = true;
+                Done = true;
             }
 
             _current.AddNeighbors(_nodeDictionary);
@@ -124,54 +132,48 @@ public class Pathfinder
             return;
         }
 
-        _path = [_current];
+        Path = [_current];
         while (_current.Previous != null)
         {
-            _path.Add(_current.Previous);
+            Path.Add(_current.Previous);
             _current = _current.Previous;
         }
 
-        _path.Reverse();
+        Path.Reverse();
     }
 
     public void SetTarget(Point16 target)
     {
-        if (_target.Distance(target) > 1)
+        if (_target.Distance(target) > 0)
         {
             _target = target;
 
-            if (_done)
+            if (Done)
             {
                 _closedSet.Clear();
-                _path.Clear();
+                Path.Clear();
                 _openSet = [new Node(_start, 0, GetHeuristic(_start, target), _ignorePlatforms)];
 
                 _nodeDictionary = new Dictionary<Point16, Node> { [_start] = _openSet[0] };
                 _current = _openSet[0];
             }
 
-            _done = false;
+            Done = false;
         }
     }
 
     /// <summary>
-    ///     Returns the current path of the pathfinder.
-    /// </summary>
-    /// <returns>The current path of the pathfinder. Returns null if no solution was found.</returns>
-    public List<Node> GetPath() => _noSolution ? null : _path;
-
-    /// <summary>
     ///     Draws the current path of the pathfinder.
     ///     Blue means that the pathfinder is currently searching, green means that the path has been found, and red means that
-    ///     there is no solution
+    ///     there is no solution.
     /// </summary>
-    /// <param name="scale"></param>
+    /// <param name="scale">The size of the lines drawn to indicate the path.</param>
     public void Draw(float scale = 8f)
     {
-        for (int i = 0; i < _path.Count - 1; i++)
+        for (int i = 0; i < Path.Count - 1; i++)
         {
             Color defaultColor = _noSolution ? Color.Red : Color.Blue;
-            Graphics.DrawLine(_path[i].Position.ToWorldCoordinates(), _path[i + 1].Position.ToWorldCoordinates(), color: _done ? Color.Green : defaultColor,
+            Graphics.DrawLine(Path[i].Position.ToWorldCoordinates(), Path[i + 1].Position.ToWorldCoordinates(), color: Done ? Color.Green : defaultColor,
                 thickness: scale);
         }
     }

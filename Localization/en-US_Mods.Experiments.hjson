@@ -5,3 +5,5 @@ Projectiles: {
 	Sand.DisplayName: Sand
 	Path.DisplayName: Path
 }
+
+NPCs.Snake.DisplayName: Snake

@@ -128,7 +128,7 @@ public class PixelationSystem : ModSystem
     /// </summary>
     /// <param name="drawAction">The action to invoke</param>
     /// <param name="renderType">Render layer to draw to</param>
-    public void AddRenderAction(Action<SpriteBatch> drawAction, RenderLayer renderType = RenderLayer.UnderProjectiles)
+    public void AddRenderAction(Action drawAction, RenderLayer renderType = RenderLayer.UnderProjectiles)
     {
         PixelationTarget target = _pixelationTargets.Find(t => t.RenderType == renderType);
         target.RenderActions.Add(drawAction);

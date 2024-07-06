@@ -52,14 +52,7 @@ public class FishFlock : ModProjectile
 
     public override void OnSpawn(IEntitySource source)
     {
-        Texture2D[] textures =
-        [
-            Graphics.GetTexture("Fish1"),
-            Graphics.GetTexture("Fish2"),
-            Graphics.GetTexture("Fish3"),
-            Graphics.GetTexture("Fish4")
-        ];
-
+        Texture2D[] textures = Graphics.GetTextures(default, "Fish1", "Fish2", "Fish3", "Fish4");
         _fish = new Fish(30, Projectile.Center, new Vector2(75, 75), new Vector2(2, 2), textures);
     }
 

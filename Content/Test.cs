@@ -3,7 +3,6 @@ using Experiments.Core.Boids;
 using Experiments.Core.Pixelation;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
@@ -47,7 +46,7 @@ public class Test : ModProjectile
         PixelationSystem.Instance.AddRenderAction(DrawAction);
         return false;
 
-        void DrawAction(SpriteBatch spriteBatch)
+        void DrawAction()
         {
             _limb.Draw(Main.DiscoColor);
             _curve.Draw(100, color: Main.DiscoColor);

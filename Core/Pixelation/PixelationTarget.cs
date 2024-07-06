@@ -16,7 +16,7 @@ public enum RenderLayer
 
 public class PixelationTarget(RenderLayer renderType)
 {
-    public readonly List<Action<SpriteBatch>> RenderActions = [];
+    public readonly List<Action> RenderActions = [];
     public readonly RenderLayer RenderType = renderType;
 
     /// <summary>
@@ -35,10 +35,10 @@ public class PixelationTarget(RenderLayer renderType)
         orig();
         RenderTargetBinding[] oldTargets = PrimaryTarget.SwapTo();
 
-        foreach (Action<SpriteBatch> action in RenderActions)
+        foreach (Action action in RenderActions)
         {
             Main.spriteBatch.Begin();
-            action(Main.spriteBatch);
+            action();
             Main.spriteBatch.End();
         }
 

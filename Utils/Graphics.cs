@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -12,6 +14,14 @@ public static class Graphics
     public const string TextureDirectory = $"{nameof(Experiments)}/Assets/Textures/";
 
     public static Texture2D GetTexture(string name, string path = TextureDirectory) => ModContent.Request<Texture2D>(path + name).Value;
+
+    public static Texture2D[] GetTextures(string path = TextureDirectory, params string[] names)
+    {
+        List<Texture2D> textures = [];
+        textures.AddRange(names.Select(name => Graphics.GetTexture(name, path)));
+
+        return textures.ToArray();
+    }
 
     /// <summary>
     ///     Draws a straight line from one point to another.
