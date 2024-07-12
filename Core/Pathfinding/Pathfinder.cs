@@ -28,10 +28,10 @@ public class Pathfinder
     private Node _current;
 
     public bool Done;
-    private Dictionary<Point16, Node> _nodeDictionary;
+    private readonly Dictionary<Point16, Node> _nodeDictionary;
     private bool _noSolution;
 
-    private List<Node> _openSet;
+    private readonly List<Node> _openSet;
 
     /// <summary>
     ///     The current path of the pathfinder. Null if no solution was found.
