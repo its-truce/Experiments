@@ -28,14 +28,12 @@ public class Path : ModProjectile
     public override void AI()
     {
         _finder.Update();
-        _finder.SetTarget(Projectile.Owner().MountedCenter.ToTileCoordinates().ToPoint16());
+        _finder = _finder.SetTarget(Projectile.Owner().MountedCenter.ToTileCoordinates().ToPoint16());
 
         Projectile.Center = _finder.Done ? _finder.Path[^1].Position.ToWorldCoordinates() : Projectile.Center;
+
+        PixelationSystem.Instance.AddRenderAction(() => { _finder.Draw(); });
     }
 
-    public override bool PreDraw(ref Color lightColor)
-    {
-        PixelationSystem.Instance.AddRenderAction(() => { _finder.Draw(); });
-        return false;
-    }
+    public override bool PreDraw(ref Color lightColor) => false;
 }

@@ -24,7 +24,7 @@ public class Pathfinder
 {
     private readonly HashSet<Node> _closedSet;
     private readonly bool _ignorePlatforms;
-    private readonly Point16 _start;
+    private Point16 _start;
     private Node _current;
 
     public bool Done;
@@ -142,24 +142,40 @@ public class Pathfinder
         Path.Reverse();
     }
 
-    public void SetTarget(Point16 target)
+    public Pathfinder SetTarget(Point16 target)
     {
         if (_target.Distance(target) > 0)
         {
             _target = target;
 
-            if (Done)
-            {
-                _closedSet.Clear();
-                Path.Clear();
-                _openSet = [new Node(_start, 0, GetHeuristic(_start, target), _ignorePlatforms)];
+            Pathfinder pathfinder = this;
 
-                _nodeDictionary = new Dictionary<Point16, Node> { [_start] = _openSet[0] };
-                _current = _openSet[0];
-            }
+            if (Done)
+                pathfinder = new Pathfinder(_start, target, _ignorePlatforms);
 
             Done = false;
+            return pathfinder;
         }
+
+        return this;
+    }
+
+    public Pathfinder SetStart(Point16 start)
+    {
+        if (_start.Distance(start) > 0)
+        {
+            _start = start;
+
+            Pathfinder pathfinder = this;
+
+            if (Done)
+                pathfinder = new Pathfinder(_start, _target, _ignorePlatforms);
+
+            Done = false;
+            return pathfinder;
+        }
+
+        return this;
     }
 
     /// <summary>
