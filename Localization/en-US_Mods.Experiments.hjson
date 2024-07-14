@@ -4,6 +4,7 @@ Projectiles: {
 	FishFlock.DisplayName: Fish Flock
 	Sand.DisplayName: Sand
 	Path.DisplayName: Path
+	Balls.DisplayName: Balls
 }
 
 NPCs.Snake.DisplayName: Snake

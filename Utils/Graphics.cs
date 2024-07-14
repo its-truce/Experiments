@@ -18,7 +18,7 @@ public static class Graphics
     public static Texture2D[] GetTextures(string path = TextureDirectory, params string[] names)
     {
         List<Texture2D> textures = [];
-        textures.AddRange(names.Select(name => Graphics.GetTexture(name, path)));
+        textures.AddRange(names.Select(name => GetTexture(name, path)));
 
         return textures.ToArray();
     }
@@ -46,6 +46,22 @@ public static class Graphics
         float rotation = start.DirectionTo(end).ToRotation() - (spriteFacingUpwards ? MathF.PI / 2 : 0);
 
         Main.EntitySpriteDraw(texture, start - Main.screenPosition, null, drawColor, rotation, origin, scale, SpriteEffects.None);
+    }
+
+    /// <summary>
+    ///     Draws a circle at the given position.
+    /// </summary>
+    /// <param name="center">Center or position of the circle</param>
+    /// <param name="radius">Radius of the circle</param>
+    /// <param name="color"><see cref="Color.White" /> by default</param>
+    public static void DrawCircle(Vector2 center, float radius, Color? color = null)
+    {
+        Texture2D texture = Graphics.GetTexture("Circle");
+        Color drawColor = color ?? Color.White;
+
+        float scale = radius / (texture.Height / 2);
+
+        Main.EntitySpriteDraw(texture, center - Main.screenPosition, null, drawColor, 0, texture.Size() / 2, scale, SpriteEffects.None);
     }
 
     /// <summary>
@@ -82,7 +98,7 @@ public static class Graphics
 
     public static Color ToColor(this Vector3 vector3) => new(vector3.X * 255, vector3.Y * 255, vector3.Z * 255);
 
-    public static Color AddColors(Color color, Color color2)
+    public static Color Add(this Color color, Color color2)
     {
         Color sumColor = new(
             Math.Clamp(color.R + color2.R, 0, 255),

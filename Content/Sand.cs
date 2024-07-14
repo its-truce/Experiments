@@ -13,14 +13,14 @@ public class Sand : ModProjectile
 
     public override void SetDefaults()
     {
-        Projectile.Size = new Vector2(500, 700);
+        Projectile.Size = new Vector2(100, 100);
         Projectile.timeLeft = 5400;
         Projectile.tileCollide = false;
     }
 
     public override void OnSpawn(IEntitySource source)
     {
-        _sand = new GrainSimulation(new Rectangle((int)Projectile.Center.X - 250, (int)Projectile.Center.Y - 350, 500, 700), 4);
+        _sand = new GrainSimulation(Projectile.Hitbox);
     }
 
     public override void AI()

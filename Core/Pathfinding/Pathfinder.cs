@@ -24,21 +24,21 @@ public class Pathfinder
 {
     private readonly HashSet<Node> _closedSet;
     private readonly bool _ignorePlatforms;
-    private Point16 _start;
-    private Node _current;
-
-    public bool Done;
     private readonly Dictionary<Point16, Node> _nodeDictionary;
-    private bool _noSolution;
 
     private readonly List<Node> _openSet;
+    private Node _current;
+    private bool _noSolution;
+    private Point16 _start;
+
+    private Point16 _target;
+
+    public bool Done;
 
     /// <summary>
     ///     The current path of the pathfinder. Null if no solution was found.
     /// </summary>
     public List<Node> Path;
-
-    private Point16 _target;
 
     public Pathfinder(Point16 start, Point16 target, bool ignorePlatforms = false)
     {

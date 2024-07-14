@@ -13,9 +13,9 @@ namespace Experiments.Content;
 public class Snake : ModNPC
 {
     private Pathfinder _finder;
-    private Limb _limb;
 
     private int _frameCounter;
+    private Limb _limb;
     public override string Texture => Graphics.TextureDirectory + "EmptyTexture";
 
     public override void SetDefaults()
