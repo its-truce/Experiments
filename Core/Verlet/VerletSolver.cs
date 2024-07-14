@@ -2,6 +2,8 @@
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace Experiments.Core.Verlet;
@@ -9,16 +11,14 @@ namespace Experiments.Core.Verlet;
 public class VerletSolver : ModSystem
 {
     public static readonly List<VerletBody> Objects = [];
-    private readonly Vector2 _gravity = new Vector2(0, 100f);
+    private readonly Vector2 _gravity = new Vector2(0, 150);
 
     private static Vector2 Center => Main.LocalPlayer.Center;
-    private readonly float _radius = 400f;
+    private const float Radius = 300;
 
     public override void PostUpdateEverything()
     {
-        return;
-
-        const int subSteps = 8;
+        const int subSteps = 16;
         const float subDeltaTime = 1f / subSteps;
 
         for (int i = subSteps; i > 0; i--)
@@ -26,7 +26,7 @@ public class VerletSolver : ModSystem
             foreach (VerletBody obj in Objects)
             {
                 // Gravity
-                obj.Acceleration += _gravity * subSteps;
+                obj.Acceleration += _gravity;
 
                 // Collisions
                 foreach (VerletBody obj2 in Objects)
@@ -51,10 +51,10 @@ public class VerletSolver : ModSystem
                 Vector2 toBody = obj.Position - Center;
                 float dist = toBody.Length();
 
-                if (dist > _radius - obj.Radius)
+                if (dist > Radius - obj.Radius)
                 {
                     Vector2 n = toBody / dist;
-                    obj.Position = Center + n * (_radius - obj.Radius);
+                    obj.Position = Center + n * (Radius - obj.Radius);
                 }
 
                 // Update positions
@@ -62,9 +62,10 @@ public class VerletSolver : ModSystem
             }
         }
 
-        if (Maths.ContainsPoint(Center, _radius, Main.MouseWorld) && Main.mouseLeft && !Main.mouseLeftRelease && Main.timeForVisualEffects % 5 == 0)
+        if (Maths.ContainsPoint(Center, Radius, Main.MouseWorld) && Main.mouseLeft && !Main.mouseLeftRelease && Main.timeForVisualEffects % 7 == 0)
         {
-            VerletBody verletBody = new VerletBody(Main.MouseWorld, Main.rand.Next(10, 20));
+            SoundEngine.PlaySound(SoundID.DD2_WitherBeastCrystalImpact with { PitchVariance = 0.5f }, Main.MouseWorld);
+            VerletBody verletBody = new VerletBody(Main.MouseWorld, Main.rand.Next(10, 20), Main.DiscoColor);
             verletBody.Register();
         }
     }
@@ -73,7 +74,8 @@ public class VerletSolver : ModSystem
     {
         Main.spriteBatch.Begin();
 
-        Graphics.DrawCircle(Center, _radius, Color.Black * 0.75f);
+        Graphics.DrawCircle(Center, Radius, Color.Black * 0.75f);
+
         foreach (VerletBody obj in Objects)
             obj.Draw();
 

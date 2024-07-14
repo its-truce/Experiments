@@ -1,7 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Experiments.Utils;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.DataStructures;
 
 namespace Experiments.Core;
 
@@ -10,7 +11,7 @@ public class Sandbox(Rectangle grid, int scale = 2, bool tileCollision = true)
     private readonly int _columns = grid.Width / scale;
     private readonly int _rows = grid.Height / scale;
 
-    private float _value = 0.5f;
+    private float _colorMult = 0.5f;
 
     private float[,] _currentGrid = new float[grid.Width / scale, grid.Height / scale];
     private float[,] _nextGrid;
@@ -19,50 +20,51 @@ public class Sandbox(Rectangle grid, int scale = 2, bool tileCollision = true)
     {
         _nextGrid = new float[_columns, _rows];
 
-        for (int i = grid.Left; i < grid.Right; i += scale)
-        for (int j = grid.Top; j < grid.Bottom; j += scale)
+        for (int i = 0; i < _columns; i++)
+        for (int j = 0; j < _rows; j++)
         {
-            int iIndex = i - grid.Left;
-            int jIndex = j - grid.Top;
+            float state = _currentGrid[i, j];
 
-            float state = _currentGrid[iIndex, jIndex];
-
-            if (state > 0 && j + scale < grid.Bottom)
+            if (state > 0)
             {
                 int direction = Main.rand.NextFromCollection([1, -1]);
 
-                if (_currentGrid[iIndex, jIndex + 1] == 0 && !CheckTiles(i, j + 1))
+                if (j + 1 < _rows)
                 {
-                    _nextGrid[iIndex, jIndex + 1] = state;
-                    continue;
+                    if (_currentGrid[i, j + 1] == 0 && !CheckTiles(i, j + 1))
+                    {
+                        _nextGrid[i, j + 1] = state;
+                        continue;
+                    }
+
+                    // Ensure i + direction and i - direction are within bounds
+                    bool withinBoundsPlus = i + direction >= 0 && i + direction < _columns;
+                    bool withinBoundsMinus = i - direction >= 0 && i - direction < _columns;
+
+                    if (withinBoundsPlus && _currentGrid[i + direction, j + 1] == 0 && !CheckTiles(i + direction, j + 1))
+                        _nextGrid[i + direction, j + 1] = state;
+                    else if (withinBoundsMinus && _currentGrid[i - direction, j + 1] == 0 && !CheckTiles(i - direction, j + 1))
+                        _nextGrid[i - direction, j + 1] = state;
+                    else
+                        _nextGrid[i, j] = state;
                 }
-
-                // Ensure i + direction and i - direction are within bounds
-                bool withinBoundsPlus = i + direction >= 0 && i + direction < grid.Right;
-                bool withinBoundsMinus = i - direction >= 0 && i - direction < grid.Right;
-
-                if (withinBoundsPlus && _currentGrid[iIndex + direction, jIndex + 1] == 0 && !CheckTiles(i + direction, j + scale))
-                    _nextGrid[iIndex + direction, jIndex + 1] = state;
-                else if (withinBoundsMinus && _currentGrid[iIndex - direction, jIndex + 1] == 0 && !CheckTiles(i - direction, j + scale))
-                    _nextGrid[iIndex - direction, jIndex + 1] = state;
                 else
-                    _nextGrid[iIndex, jIndex] = state;
+                    _nextGrid[i, j] = state;
             }
-            else
-                _nextGrid[iIndex, jIndex] = state;
         }
 
         _currentGrid = _nextGrid;
 
-        Vector2 gridIndices = Main.MouseWorld - new Vector2(grid.Left, grid.Top) + new Vector2(scale / 2);
-        if (grid.Contains(Main.MouseWorld.ToPoint()) && Main.mouseLeft && !Main.mouseLeftRelease && !CheckTiles(Main.MouseWorld.X, Main.MouseWorld.Y))
+        Point16 gridIndices = ToGridIndices(Main.MouseWorld);
+        if (grid.Contains(Main.MouseWorld.ToPoint()) && Main.mouseLeft && !Main.mouseLeftRelease && !CheckTiles(gridIndices.X, gridIndices.Y))
         {
-            _currentGrid[(int)gridIndices.X, (int)gridIndices.Y] = _value;
-            _value += 0.05f;
+            Dust.NewDustPerfect(gridIndices.ToWorldCoordinates(), 1);
+            _currentGrid[gridIndices.X, gridIndices.Y] = _colorMult;
+            _colorMult += 0.05f;
         }
 
-        if (_value > 1.3f)
-            _value = 0.5f;
+        if (_colorMult > 1.3f)
+            _colorMult = 0.5f;
     }
 
     public void Draw(Color? color = null, Color? backgroundColor = null)
@@ -70,19 +72,19 @@ public class Sandbox(Rectangle grid, int scale = 2, bool tileCollision = true)
         Color drawColor = color ?? Color.White;
         Color bgColor = backgroundColor ?? Color.Transparent;
 
-        Texture2D texture = TextureAssets.MagicPixel.Value;
+        Texture2D texture = Graphics.GetTexture("Pixel");
 
-        for (int i = grid.Left; i < grid.Right; i += scale)
-        for (int j = grid.Top; j < grid.Bottom; j += scale)
+        for (int i = 0; i < _columns; i++)
+        for (int j = 0; j < _rows; j++)
         {
-            int iIndex = i - grid.Left;
-            int jIndex = j - grid.Top;
-
-            Main.EntitySpriteDraw(texture, new Vector2(i, j) + new Vector2(scale / 2) - Main.screenPosition, new Rectangle(0, 0, 1, 1),
-                _currentGrid[iIndex, jIndex] > 0 ? drawColor * _currentGrid[i, j] : bgColor, 0, new Vector2(scale / 2), scale, SpriteEffects.None);
+            Main.EntitySpriteDraw(texture, ToWorldCoordinates(i, j) - Main.screenPosition, null,
+                _currentGrid[i, j] > 0 ? drawColor * _currentGrid[i, j] : bgColor, 0, texture.Size() / 2, scale, SpriteEffects.None);
         }
     }
 
-    private bool CheckTiles(float i, float j) =>
-        tileCollision && Framing.GetTileSafely(new Vector2(i, j)).HasTile;
+    private Vector2 ToWorldCoordinates(int i, int j) => new Vector2(i * scale + grid.X, j * scale + grid.Y) + new Vector2(scale / 2);
+
+    private Point16 ToGridIndices(Vector2 vector2) => new Point16((int)(vector2.X - grid.X) / scale, (int)(vector2.Y - grid.Y) / scale) - new Point16(scale / 2);
+
+    private bool CheckTiles(int i, int j) => tileCollision && Framing.GetTileSafely(ToWorldCoordinates(i, j)).HasTile;
 }

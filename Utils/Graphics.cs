@@ -17,6 +17,7 @@ public static class Graphics
 
     public static Texture2D[] GetTextures(string path = TextureDirectory, params string[] names)
     {
+        path ??= TextureDirectory;
         List<Texture2D> textures = [];
         textures.AddRange(names.Select(name => GetTexture(name, path)));
 

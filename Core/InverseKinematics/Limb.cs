@@ -47,10 +47,6 @@ public class Limb
             _segments[i] = new Bone(_segments[i - 1].End, segmentLength - lengthStep * i, strokeWeight: strokeWeight - strokeWeightStep * i);
     }
 
-    protected Limb()
-    {
-    }
-
     /// <summary>
     ///     Set the target for the head segment to follow.
     /// </summary>
