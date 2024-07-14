@@ -20,6 +20,24 @@ public class Sandbox(Rectangle grid, int scale = 2, bool tileCollision = true)
     {
         _nextGrid = new float[_columns, _rows];
 
+        FasterParallel.For(0, _columns, IterateOverGrid);
+
+        _currentGrid = _nextGrid;
+
+        Point16 gridIndices = ToGridIndices(Main.MouseWorld);
+        if (grid.Contains(Main.MouseWorld.ToPoint()) && Main.mouseLeft && !Main.mouseLeftRelease && !CheckTiles(gridIndices.X, gridIndices.Y))
+        {
+            Dust.NewDustPerfect(gridIndices.ToWorldCoordinates(), 1);
+            _currentGrid[gridIndices.X, gridIndices.Y] = _colorMult;
+            _colorMult += 0.05f;
+        }
+
+        if (_colorMult > 1.3f)
+            _colorMult = 0.5f;
+    }
+
+    private void IterateOverGrid(int start, int end, object context)
+    {
         for (int i = 0; i < _columns; i++)
         for (int j = 0; j < _rows; j++)
         {
@@ -52,19 +70,6 @@ public class Sandbox(Rectangle grid, int scale = 2, bool tileCollision = true)
                     _nextGrid[i, j] = state;
             }
         }
-
-        _currentGrid = _nextGrid;
-
-        Point16 gridIndices = ToGridIndices(Main.MouseWorld);
-        if (grid.Contains(Main.MouseWorld.ToPoint()) && Main.mouseLeft && !Main.mouseLeftRelease && !CheckTiles(gridIndices.X, gridIndices.Y))
-        {
-            Dust.NewDustPerfect(gridIndices.ToWorldCoordinates(), 1);
-            _currentGrid[gridIndices.X, gridIndices.Y] = _colorMult;
-            _colorMult += 0.05f;
-        }
-
-        if (_colorMult > 1.3f)
-            _colorMult = 0.5f;
     }
 
     public void Draw(Color? color = null, Color? backgroundColor = null)

@@ -26,7 +26,7 @@ public class Pathfinder
     private readonly bool _ignorePlatforms;
     private readonly Dictionary<Point16, Node> _nodeDictionary;
 
-    private readonly List<Node> _openSet;
+    private readonly PriorityQueue<Node, float> _openSet;
     private Node _current;
     private bool _noSolution;
     private Point16 _start;
@@ -48,10 +48,13 @@ public class Pathfinder
 
         _closedSet = [];
         Path = [];
-        _openSet = [new Node(start, 0, GetHeuristic(start, target), ignorePlatforms)];
+        _openSet = new PriorityQueue<Node, float>();
 
-        _nodeDictionary = new Dictionary<Point16, Node> { [start] = _openSet[0] };
-        _current = _openSet[0];
+        Node startNode = new Node(start, 0, GetHeuristic(start, target), ignorePlatforms);
+        _openSet.Enqueue(startNode, startNode.FCost);
+
+        _nodeDictionary = new Dictionary<Point16, Node> { [start] = startNode };
+        _current = startNode;
     }
 
     private static float GetHeuristic(Point16 start, Point16 end, HeuristicType heuristicType = HeuristicType.Octile)
@@ -93,9 +96,7 @@ public class Pathfinder
 
         if (_openSet.Count > 0)
         {
-            _current = _openSet.MinBy(node => node.FCost);
-
-            _openSet.Remove(_current);
+            _current = _openSet.Dequeue();
             _closedSet.Add(_current);
 
             if (_current.Position == _target)
@@ -121,8 +122,8 @@ public class Pathfinder
                     neighbor.FCost = neighbor.GCost + neighbor.HCost;
                     neighbor.Previous = _current;
 
-                    if (!_openSet.Contains(neighbor))
-                        _openSet.Add(neighbor);
+                    if (_openSet.UnorderedItems.All(t => t.Element != neighbor))
+                        _openSet.Enqueue(neighbor, neighbor.FCost);
                 }
             }
         }

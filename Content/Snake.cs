@@ -1,5 +1,4 @@
-﻿using Experiments.Core;
-using Experiments.Core.InverseKinematics;
+﻿using Experiments.Core.InverseKinematics;
 using Experiments.Core.Pathfinding;
 using Experiments.Core.Pixelation;
 using Experiments.Utils;
@@ -21,7 +20,7 @@ public class Snake : ModNPC
 
     public override void SetDefaults()
     {
-        NPC.Size = new Vector2(14);
+        NPC.Size = new Vector2(8);
         NPC.damage = 10;
         NPC.lifeMax = 100;
         NPC.timeLeft = int.MaxValue;
@@ -37,9 +36,12 @@ public class Snake : ModNPC
 
     public override void AI()
     {
+        if (_finder.Path == null || _finder is null) return;
+
         NPC.TargetClosest();
 
         _finder = _finder.SetTarget(NPC.Target().MountedCenter.ToTileCoordinates().ToPoint16());
+        _finder = _finder.Done ? _finder : _finder.SetStart(NPC.Center.ToTileCoordinates().ToPoint16());
         _finder.Update();
 
         _limb.Follow(NPC.Center);
@@ -48,7 +50,6 @@ public class Snake : ModNPC
         int frames = _finder.Path.Count;
         if (_finder.Done)
         {
-            Main.NewText("hi");
             if (_frameCounter < frames)
                 _frameCounter++;
 

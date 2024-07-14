@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -76,40 +75,12 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
     /// <param name="boids">The collection of boids to iterate through</param>
     /// <param name="behaviorType">Type of behavior to calculate force for</param>
     /// <returns></returns>
-    public Vector2 CalculateForce(IEnumerable<Boid> boids, BehaviorType behaviorType)
+    public Vector2 CalculateForce(Boid[] boids, BehaviorType behaviorType)
     {
         Vector2 force = Vector2.Zero;
         int count = 0;
 
-        foreach (Boid boid in boids)
-        {
-            if (boid == this)
-                continue;
-
-            float distanceSquared = Vector2.DistanceSquared(Position, boid.Position);
-
-            if (distanceSquared < perceptionRadius * perceptionRadius)
-            {
-                switch (behaviorType)
-                {
-                    case BehaviorType.Separation:
-                        Vector2 difference = Position - boid.Position;
-                        difference /= distanceSquared;
-                        force += difference;
-                        break;
-
-                    case BehaviorType.Alignment:
-                        force += boid.Velocity;
-                        break;
-
-                    case BehaviorType.Cohesion:
-                        force += boid.Position - Position;
-                        break;
-                }
-
-                count++;
-            }
-        }
+        FasterParallel.For(0, boids.Length, IterateOverBoids);
 
         if (count > 0)
         {
@@ -121,6 +92,40 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
         }
 
         return force;
+
+        void IterateOverBoids(int start, int end, object context)
+        {
+            for (int i = start; i < end; i++)
+            {
+                Boid boid = boids[i];
+                if (boid == this)
+                    continue;
+
+                float distanceSquared = Vector2.DistanceSquared(Position, boid.Position);
+
+                if (distanceSquared < perceptionRadius * perceptionRadius)
+                {
+                    switch (behaviorType)
+                    {
+                        case BehaviorType.Separation:
+                            Vector2 difference = Position - boid.Position;
+                            difference /= distanceSquared;
+                            force += difference;
+                            break;
+
+                        case BehaviorType.Alignment:
+                            force += boid.Velocity;
+                            break;
+
+                        case BehaviorType.Cohesion:
+                            force += boid.Position - Position;
+                            break;
+                    }
+
+                    count++;
+                }
+            }
+        }
     }
 
     public void Draw(Color? color = null, bool spriteFacingUpwards = false)

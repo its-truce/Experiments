@@ -13,7 +13,7 @@ public class Sand : ModProjectile
 
     public override void SetDefaults()
     {
-        Projectile.Size = new Vector2(500, 500);
+        Projectile.Size = new Vector2(1000, 1000);
         Projectile.timeLeft = 5400;
         Projectile.tileCollide = false;
     }
