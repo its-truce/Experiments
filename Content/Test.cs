@@ -1,5 +1,6 @@
 ﻿using Experiments.Core;
 using Experiments.Core.Boids;
+using Experiments.Core.InverseKinematics;
 using Experiments.Core.Pixelation;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;

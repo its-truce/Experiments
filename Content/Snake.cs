@@ -1,4 +1,5 @@
 ﻿using Experiments.Core;
+using Experiments.Core.InverseKinematics;
 using Experiments.Core.Pathfinding;
 using Experiments.Core.Pixelation;
 using Experiments.Utils;
