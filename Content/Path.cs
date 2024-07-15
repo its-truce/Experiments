@@ -1,5 +1,4 @@
 ﻿using Experiments.Core.Pathfinding;
-using Experiments.Core.Pixelation;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -22,18 +21,22 @@ public class Path : ModProjectile
 
     public override void OnSpawn(IEntitySource source)
     {
-        _finder = new Pathfinder(Projectile.Center.ToTileCoordinates().ToPoint16(), Projectile.Owner().Center.ToTileCoordinates().ToPoint16());
+        _finder = new Pathfinder(Projectile.Center.ToTileCoordinates().ToPoint16(), Projectile.Owner().Center.ToTileCoordinates().ToPoint16(), true);
     }
 
     public override void AI()
     {
+        if (_finder?.Path is null) return;
+
         _finder.Update();
         _finder = _finder.SetTarget(Projectile.Owner().MountedCenter.ToTileCoordinates().ToPoint16());
 
         Projectile.Center = _finder.Done ? _finder.Path[^1].Position.ToWorldCoordinates() : Projectile.Center;
-
-        PixelationSystem.Instance.AddRenderAction(() => { _finder.Draw(); });
     }
 
-    public override bool PreDraw(ref Color lightColor) => false;
+    public override bool PreDraw(ref Color lightColor)
+    {
+        _finder?.Draw();
+        return false;
+    }
 }

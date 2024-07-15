@@ -111,12 +111,9 @@ public class BezierCurve(params Vector2[] controlPoints)
         var tempPoints = new Vector2[n];
         Array.Copy(controlPoints, tempPoints, n);
 
-        FasterParallel.For(1, n, (start, end, context) =>
-        {
-            for (int k = start; k < end; k++)
-            for (int i = 0; i < n - k; i++)
-                tempPoints[i] = Vector2.Lerp(tempPoints[i], tempPoints[i + 1], t);
-        });
+        for (int k = 1; k < n; k++)
+        for (int i = 0; i < n - k; i++)
+            tempPoints[i] = Vector2.Lerp(tempPoints[i], tempPoints[i + 1], t);
 
         return tempPoints[0];
     }

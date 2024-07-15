@@ -8,14 +8,15 @@ namespace Experiments.Core.InverseKinematics;
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 public class Limb
 {
-    private readonly Bone[] _segments;
+    protected Bone[] Segments;
 
     public bool FixedBase;
     public Vector2 BasePosition;
+    public Vector2 HeadPosition;
 
-    private readonly Texture2D _texture;
+    protected Texture2D Texture;
 
-    private readonly bool _spriteFacingUpwards;
+    protected bool SpriteFacingUpwards;
     // ReSharper restore FieldCanBeMadeReadOnly.Global
     // ReSharper restore MemberCanBePrivate.Global
 
@@ -37,14 +38,20 @@ public class Limb
     {
         BasePosition = basePosition;
         FixedBase = fixedBase;
-        _texture = texture;
-        _spriteFacingUpwards = spriteFacingUpwards;
+        Texture = texture;
+        SpriteFacingUpwards = spriteFacingUpwards;
 
-        _segments = new Bone[size];
-        _segments[0] = new Bone(basePosition, segmentLength, strokeWeight: strokeWeight);
+        Segments = new Bone[size];
+        Segments[0] = new Bone(basePosition, segmentLength, strokeWeight: strokeWeight);
 
-        for (int i = 1; i < _segments.Length; i++)
-            _segments[i] = new Bone(_segments[i - 1].End, segmentLength - lengthStep * i, strokeWeight: strokeWeight - strokeWeightStep * i);
+        for (int i = 1; i < Segments.Length; i++)
+            Segments[i] = new Bone(Segments[i - 1].End, segmentLength - lengthStep * i, strokeWeight: strokeWeight - strokeWeightStep * i);
+
+        HeadPosition = Segments[^1].End;
+    }
+
+    protected Limb()
+    {
     }
 
     /// <summary>
@@ -54,7 +61,7 @@ public class Limb
     /// <seealso cref="Bone.Follow" />
     public void Follow(Vector2 target)
     {
-        Bone end = _segments[^1];
+        Bone end = Segments[^1];
         end.Follow(target);
     }
 
@@ -63,16 +70,17 @@ public class Limb
     /// </summary>
     public void Update()
     {
-        for (int i = _segments.Length - 2; i >= 0; i--)
-            _segments[i].Follow(_segments[i + 1].Start);
+        for (int i = Segments.Length - 2; i >= 0; i--)
+            Segments[i].Follow(Segments[i + 1].Start);
 
         if (FixedBase)
-            _segments[0].Start = BasePosition;
+            Segments[0].Start = BasePosition;
 
-        for (int i = 1; i < _segments.Length; i++)
-            _segments[i].Start = _segments[i - 1].End;
+        for (int i = 1; i < Segments.Length; i++)
+            Segments[i].Start = Segments[i - 1].End;
 
-        BasePosition = _segments[0].Start;
+        BasePosition = Segments[0].Start;
+        HeadPosition = Segments[^1].End;
     }
 
     /// <summary>
@@ -82,6 +90,6 @@ public class Limb
     /// <seealso cref="Bone.Draw" />
     public void Draw(Color? color = null)
     {
-        foreach (Bone segment in _segments) segment.Draw(_texture, color, _spriteFacingUpwards);
+        foreach (Bone segment in Segments) segment.Draw(Texture, color, SpriteFacingUpwards);
     }
 }

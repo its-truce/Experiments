@@ -50,7 +50,7 @@ public class Pathfinder
         Path = [];
         _openSet = new PriorityQueue<Node, float>();
 
-        Node startNode = new Node(start, 0, GetHeuristic(start, target), ignorePlatforms);
+        Node startNode = new(start, 0, GetHeuristic(start, target), ignorePlatforms);
         _openSet.Enqueue(startNode, startNode.FCost);
 
         _nodeDictionary = new Dictionary<Point16, Node> { [start] = startNode };
@@ -87,50 +87,69 @@ public class Pathfinder
         return heuristic;
     }
 
-    public void Update(HeuristicType heuristicType = HeuristicType.Octile)
+    public void Update(int subSteps = 2, HeuristicType heuristicType = HeuristicType.Octile)
     {
         if (_noSolution)
+        {
             Path = null;
+            return;
+        }
 
         if (Done) return;
 
-        if (_openSet.Count > 0)
+        for (int i = 0; i < subSteps; i++)
         {
-            _current = _openSet.Dequeue();
-            _closedSet.Add(_current);
-
-            if (_current.Position == _target)
+            object lockObject = new(); // Object for synchronization
+            lock (lockObject)
             {
-                if (_nodeDictionary.TryGetValue(_target, out Node node))
-                    _current = node;
-
-                Done = true;
-            }
-
-            _current.AddNeighbors(_nodeDictionary);
-
-            foreach (Node neighbor in _current.Neighbors)
-            {
-                if (_closedSet.Contains(neighbor) || neighbor.IsWall) continue;
-
-                float gScore = _current.GCost + GetHeuristic(neighbor.Position, _current.Position, heuristicType);
-
-                if (gScore < neighbor.GCost)
+                if (_openSet.Count > 0)
                 {
-                    neighbor.GCost = gScore;
-                    neighbor.HCost = GetHeuristic(neighbor.Position, _target, heuristicType);
-                    neighbor.FCost = neighbor.GCost + neighbor.HCost;
-                    neighbor.Previous = _current;
+                    _current = _openSet.Dequeue();
+                    _closedSet.Add(_current);
 
-                    if (_openSet.UnorderedItems.All(t => t.Element != neighbor))
-                        _openSet.Enqueue(neighbor, neighbor.FCost);
+                    if (_current.Position == _target)
+                    {
+                        if (_nodeDictionary.TryGetValue(_target, out Node node))
+                            _current = node;
+
+                        Done = true;
+                        break;
+                    }
+
+                    _current.AddNeighbors(_nodeDictionary);
+
+                    List<Node> neighbors = _current.Neighbors;
+
+                    FasterParallel.For(0, neighbors.Count, (_, _, _) =>
+                    {
+                        foreach (Node neighbor in neighbors)
+                        {
+                            if (_closedSet.Contains(neighbor) || neighbor.IsWall) continue;
+
+                            float gScore = _current.GCost + GetHeuristic(neighbor.Position, _current.Position, heuristicType);
+
+                            lock (neighbor)
+                            {
+                                if (gScore < neighbor.GCost)
+                                {
+                                    neighbor.GCost = gScore;
+                                    neighbor.HCost = GetHeuristic(neighbor.Position, _target, heuristicType);
+                                    neighbor.FCost = neighbor.GCost + neighbor.HCost;
+                                    neighbor.Previous = _current;
+
+                                    if (_openSet.UnorderedItems.All(t => t.Element != neighbor))
+                                        _openSet.Enqueue(neighbor, neighbor.FCost);
+                                }
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    _noSolution = true;
+                    break;
                 }
             }
-        }
-        else
-        {
-            _noSolution = true;
-            return;
         }
 
         Path = [_current];

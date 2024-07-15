@@ -7,9 +7,9 @@ namespace Experiments.Core.Verlet;
 
 public class VerletPoint(Vector2 position, bool locked = false)
 {
+    public readonly bool Locked = locked;
     public Vector2 Position = position;
     public Vector2 PrevPosition = position;
-    public readonly bool Locked = locked;
 }
 
 public struct VerletStick(VerletPoint pointA, VerletPoint pointB)
@@ -35,10 +35,7 @@ public class VerletChain
         if (_points.Count == 1)
             _points.Add(new VerletPoint(_points[0].Position));
 
-        for (int i = 0; i < _points.Count - 1; i++)
-        {
-            _sticks.Add(new VerletStick(_points[i], _points[i + 1]));
-        }
+        for (int i = 0; i < _points.Count - 1; i++) _sticks.Add(new VerletStick(_points[i], _points[i + 1]));
     }
 
     public void Update(float gravity = 9.8f, float deltaTime = 1, int subSteps = 8)

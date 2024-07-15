@@ -38,7 +38,7 @@ public class Sandbox(Rectangle grid, int scale = 2, bool tileCollision = true)
 
     private void IterateOverGrid(int start, int end, object context)
     {
-        for (int i = 0; i < _columns; i++)
+        for (int i = start; i < end; i++)
         for (int j = 0; j < _rows; j++)
         {
             float state = _currentGrid[i, j];

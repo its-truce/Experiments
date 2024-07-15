@@ -57,7 +57,7 @@ public static class Graphics
     /// <param name="color"><see cref="Color.White" /> by default</param>
     public static void DrawCircle(Vector2 center, float radius, Color? color = null)
     {
-        Texture2D texture = Graphics.GetTexture("Circle");
+        Texture2D texture = GetTexture("Circle");
         Color drawColor = color ?? Color.White;
 
         float scale = radius / (texture.Height / 2);
