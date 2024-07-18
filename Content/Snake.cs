@@ -1,4 +1,5 @@
-﻿using Experiments.Core.InverseKinematics;
+﻿using System.Diagnostics;
+using Experiments.Core.InverseKinematics;
 using Experiments.Core.Pathfinding;
 using Experiments.Core.Pixelation;
 using Experiments.Utils;
@@ -38,6 +39,8 @@ public class Snake : ModNPC
     private RandomLengthLimb _limb;
     public override string Texture => Graphics.TextureDirectory + "EmptyTexture";
 
+    private readonly Stopwatch _stopWatch = new Stopwatch();
+
     public override void SetDefaults()
     {
         NPC.Size = new Vector2(8);
@@ -64,6 +67,8 @@ public class Snake : ModNPC
 
         if (_finder.Done && _currentWaypoint < _finder.Path.Count)
         {
+            _stopWatch.Stop();
+            Main.NewText($"With inlining: {_stopWatch.ElapsedMilliseconds} ms");
             Vector2 position = _finder.Path[_currentWaypoint].Position.ToWorldCoordinates();
             NPC.velocity = NPC.DirectionTo(position) * 12;
 
@@ -72,8 +77,9 @@ public class Snake : ModNPC
         }
         else
         {
+            _stopWatch.Start();
             _finder = _finder.Done ? _finder : _finder.SetStart(NPC.Center.ToTileCoordinates().ToPoint16());
-            _finder.Update(30);
+            _finder.Update(5000);
             NPC.velocity = Vector2.Zero;
         }
 

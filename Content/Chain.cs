@@ -1,4 +1,4 @@
-﻿using Experiments.Core.Verlet;
+﻿using Experiments.Core;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Terraria;

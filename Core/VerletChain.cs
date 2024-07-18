@@ -3,7 +3,7 @@ using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Terraria;
 
-namespace Experiments.Core.Verlet;
+namespace Experiments.Core;
 
 public class VerletPoint(Vector2 position, bool locked = false)
 {
@@ -54,14 +54,24 @@ public class VerletChain
         {
             foreach (VerletStick stick in _sticks)
             {
-                Vector2 jointCenter = (stick.PointA.Position + stick.PointB.Position) / 2;
-                Vector2 jointDir = stick.PointA.Position.DirectionTo(stick.PointB.Position);
+                Vector2 center = (stick.PointA.Position + stick.PointB.Position) / 2;
+                Vector2 direction = stick.PointA.Position.DirectionTo(stick.PointB.Position);
 
-                if (!stick.PointA.Locked)
-                    stick.PointA.Position = jointCenter + jointDir * stick.Length / 2;
+                switch (stick.PointA.Locked)
+                {
+                    case false when !stick.PointB.Locked:
+                        stick.PointA.Position = center + direction * stick.Length / 2;
+                        stick.PointB.Position = center - direction * stick.Length / 2;
+                        break;
 
-                if (!stick.PointB.Locked)
-                    stick.PointB.Position = jointCenter - jointDir * stick.Length / 2;
+                    case true when !stick.PointB.Locked:
+                        stick.PointB.Position = stick.PointA.Position + direction * stick.Length;
+                        break;
+
+                    case false when stick.PointB.Locked:
+                        stick.PointA.Position = stick.PointB.Position - direction * stick.Length;
+                        break;
+                }
             }
         }
     }

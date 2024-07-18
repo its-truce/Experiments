@@ -29,9 +29,9 @@ public class Pathfinder
     private readonly PriorityQueue<Node, float> _openSet;
     private Node _current;
     private bool _noSolution;
-    private Point16 _start;
 
-    private Point16 _target;
+    private readonly Point16 _start;
+    private readonly Point16 _target;
 
     public bool Done;
 
@@ -99,56 +99,46 @@ public class Pathfinder
 
         for (int i = 0; i < subSteps; i++)
         {
-            object lockObject = new(); // Object for synchronization
-            lock (lockObject)
+            if (_openSet.Count > 0)
             {
-                if (_openSet.Count > 0)
+                _current = _openSet.Dequeue();
+                _closedSet.Add(_current);
+
+                if (_current.Position == _target)
                 {
-                    _current = _openSet.Dequeue();
-                    _closedSet.Add(_current);
+                    if (_nodeDictionary.TryGetValue(_target, out Node node))
+                        _current = node;
 
-                    if (_current.Position == _target)
-                    {
-                        if (_nodeDictionary.TryGetValue(_target, out Node node))
-                            _current = node;
-
-                        Done = true;
-                        break;
-                    }
-
-                    _current.AddNeighbors(_nodeDictionary);
-
-                    List<Node> neighbors = _current.Neighbors;
-
-                    FasterParallel.For(0, neighbors.Count, (_, _, _) =>
-                    {
-                        foreach (Node neighbor in neighbors)
-                        {
-                            if (_closedSet.Contains(neighbor) || neighbor.IsWall) continue;
-
-                            float gScore = _current.GCost + GetHeuristic(neighbor.Position, _current.Position, heuristicType);
-
-                            lock (neighbor)
-                            {
-                                if (gScore < neighbor.GCost)
-                                {
-                                    neighbor.GCost = gScore;
-                                    neighbor.HCost = GetHeuristic(neighbor.Position, _target, heuristicType);
-                                    neighbor.FCost = neighbor.GCost + neighbor.HCost;
-                                    neighbor.Previous = _current;
-
-                                    if (_openSet.UnorderedItems.All(t => t.Element != neighbor))
-                                        _openSet.Enqueue(neighbor, neighbor.FCost);
-                                }
-                            }
-                        }
-                    });
-                }
-                else
-                {
-                    _noSolution = true;
+                    Done = true;
                     break;
                 }
+
+                _current.AddNeighbors(_nodeDictionary);
+
+                List<Node> neighbors = _current.Neighbors;
+
+                foreach (Node neighbor in neighbors)
+                {
+                    if (_closedSet.Contains(neighbor) || neighbor.IsWall) continue;
+
+                    float gScore = _current.GCost + GetHeuristic(neighbor.Position, _current.Position, heuristicType);
+
+                    if (gScore < neighbor.GCost)
+                    {
+                        neighbor.GCost = gScore;
+                        neighbor.HCost = GetHeuristic(neighbor.Position, _target, heuristicType);
+                        neighbor.FCost = neighbor.GCost + neighbor.HCost;
+                        neighbor.Previous = _current;
+
+                        if (_openSet.UnorderedItems.All(t => t.Element != neighbor))
+                            _openSet.Enqueue(neighbor, neighbor.FCost);
+                    }
+                }
+            }
+            else
+            {
+                _noSolution = true;
+                break;
             }
         }
 
@@ -166,15 +156,8 @@ public class Pathfinder
     {
         if (_target.Distance(target) > 0)
         {
-            _target = target;
-
-            Pathfinder pathfinder = this;
-
-            if (Done)
-                pathfinder = new Pathfinder(_start, target, _ignorePlatforms);
-
             Done = false;
-            return pathfinder;
+            return new Pathfinder(_start, target, _ignorePlatforms);
         }
 
         return this;
@@ -184,15 +167,8 @@ public class Pathfinder
     {
         if (_start.Distance(start) > 0)
         {
-            _start = start;
-
-            Pathfinder pathfinder = this;
-
-            if (Done)
-                pathfinder = new Pathfinder(_start, _target, _ignorePlatforms);
-
             Done = false;
-            return pathfinder;
+            return new Pathfinder(start, _target, _ignorePlatforms);
         }
 
         return this;
