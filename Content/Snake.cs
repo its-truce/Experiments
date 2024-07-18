@@ -61,6 +61,8 @@ public class Snake : ModNPC
     {
         if (_finder?.Path is null) return;
 
+        const int numberIterations = 5000;
+
         PixelationSystem.Instance.AddRenderAction(() => { _limb?.Draw(); });
 
         _finder = _finder.SetTarget(NPC.Target().MountedCenter.ToTileCoordinates().ToPoint16());
@@ -68,7 +70,7 @@ public class Snake : ModNPC
         if (_finder.Done && _currentWaypoint < _finder.Path.Count)
         {
             _stopWatch.Stop();
-            Main.NewText($"With inlining: {_stopWatch.ElapsedMilliseconds} ms");
+            Main.NewText($"Found path in {_stopWatch.ElapsedMilliseconds} ms with {numberIterations} iterations/tick");
             Vector2 position = _finder.Path[_currentWaypoint].Position.ToWorldCoordinates();
             NPC.velocity = NPC.DirectionTo(position) * 12;
 
@@ -79,7 +81,7 @@ public class Snake : ModNPC
         {
             _stopWatch.Start();
             _finder = _finder.Done ? _finder : _finder.SetStart(NPC.Center.ToTileCoordinates().ToPoint16());
-            _finder.Update(5000);
+            _finder.Update(numberIterations);
             NPC.velocity = Vector2.Zero;
         }
 
