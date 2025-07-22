@@ -1,4 +1,5 @@
 ﻿using Experiments.Core.Boids;
+using Experiments.Core.Tweens;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -50,9 +51,12 @@ public class FishFlock : ModProjectile
         Projectile.timeLeft = 600;
     }
 
+    private readonly Color _color = Color.White;
+
     public override void OnSpawn(IEntitySource source)
     {
-        Texture2D[] textures = Graphics.GetTextures(default, "Fish1", "Fish2", "Fish3", "Fish4");
+        Projectile.TweenTo(p => p.scale, 2, 30).SetEase(Easing.CircIn);
+        var textures = Graphics.GetTextures(default, "Fish1", "Fish2", "Fish3", "Fish4");
         _fish = new Fish(30, Projectile.Center, new Vector2(75, 75), new Vector2(2, 2), textures);
     }
 
@@ -76,7 +80,7 @@ public class FishFlock : ModProjectile
     public override bool PreDraw(ref Color lightColor)
     {
         if (_fish.AveragePosition.Distance(Projectile.Owner().Center) < SimulationDist)
-            _fish.Draw();
+            _fish.Draw(_color);
 
         return false;
     }

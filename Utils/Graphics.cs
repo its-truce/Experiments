@@ -60,7 +60,7 @@ public static class Graphics
         Texture2D texture = GetTexture("Circle");
         Color drawColor = color ?? Color.White;
 
-        float scale = radius / (texture.Height / 2);
+        float scale = radius / (texture.Height * 0.5f);
 
         Main.EntitySpriteDraw(texture, center - Main.screenPosition, null, drawColor, 0, texture.Size() / 2, scale, SpriteEffects.None);
     }
@@ -76,7 +76,7 @@ public static class Graphics
         if (Main.gameMenu || Main.dedServ || target is null || Main.instance.GraphicsDevice is null || Main.spriteBatch is null)
             return null;
 
-        RenderTargetBinding[] oldTargets = Main.graphics.GraphicsDevice.GetRenderTargets();
+        var oldTargets = Main.graphics.GraphicsDevice.GetRenderTargets();
 
         Main.graphics.GraphicsDevice.SetRenderTarget(target);
         Main.graphics.GraphicsDevice.Clear(flushColor ?? Color.Transparent);

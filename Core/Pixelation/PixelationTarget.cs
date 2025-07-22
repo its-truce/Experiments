@@ -33,7 +33,7 @@ public class PixelationTarget(RenderLayer renderType)
     public void RenderToPrimaryTarget(On_Main.orig_CheckMonoliths orig)
     {
         orig();
-        RenderTargetBinding[] oldTargets = PrimaryTarget.SwapTo();
+        var oldTargets = PrimaryTarget.SwapTo();
 
         foreach (Action action in RenderActions)
         {
@@ -50,7 +50,7 @@ public class PixelationTarget(RenderLayer renderType)
         orig();
 
         Main.spriteBatch.Begin();
-        RenderTargetBinding[] oldTargets = ScaledTarget.SwapTo();
+        var oldTargets = ScaledTarget.SwapTo();
 
         Main.spriteBatch.Draw(PrimaryTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None,
             0);

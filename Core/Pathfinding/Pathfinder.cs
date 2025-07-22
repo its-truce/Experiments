@@ -115,7 +115,7 @@ public class Pathfinder
 
                 _current.AddNeighbors(_nodeDictionary);
 
-                List<Node> neighbors = _current.Neighbors;
+                var neighbors = _current.Neighbors;
 
                 foreach (Node neighbor in neighbors)
                 {

@@ -39,7 +39,7 @@ public class Snake : ModNPC
     private RandomLengthLimb _limb;
     public override string Texture => Graphics.TextureDirectory + "EmptyTexture";
 
-    private readonly Stopwatch _stopWatch = new Stopwatch();
+    private readonly Stopwatch _stopWatch = new();
 
     public override void SetDefaults()
     {

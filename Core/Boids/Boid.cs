@@ -54,7 +54,7 @@ public class Boid(Vector2 position, Vector2 velocity, float maxForce, float maxS
                 float distanceSquared = Vector2.DistanceSquared(Position, currentTilePos.ToWorldCoordinates());
 
                 bool liquidCheck = avoidAir ? tile.LiquidAmount < 100 : tile.LiquidAmount > 0;
-                if (distanceSquared < range * range && ((tile.HasTile && Main.tileSolid[tile.TileType]) || liquidCheck))
+                if (distanceSquared < range * range && (tile.HasTile && Main.tileSolid[tile.TileType] || liquidCheck))
                     force += Position.DirectionFrom(currentTilePos.ToWorldCoordinates());
             }
         }

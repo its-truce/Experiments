@@ -4,6 +4,7 @@ using System.Linq;
 using Experiments.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Terraria.GameContent;
 using Math = System.Math;
 
 namespace Experiments.Core;
@@ -57,7 +58,7 @@ public class BezierCurve(params Vector2[] controlPoints)
     public float GetLength(int numberOfPoints)
     {
         numberOfPoints = Math.Max(numberOfPoints, 2);
-        Vector2[] points = GetPoints(numberOfPoints).ToArray();
+        var points = GetPoints(numberOfPoints).ToArray();
         float length = 0;
 
         for (int i = 0; i < numberOfPoints - 1; i++) length += Vector2.Distance(points[i], points[i + 1]);
@@ -82,7 +83,7 @@ public class BezierCurve(params Vector2[] controlPoints)
     public void Draw(int numberOfPoints, Texture2D texture = null, Color? color = null, bool spriteFacingUpwards = true, float thickness = 1)
     {
         numberOfPoints = Math.Max(numberOfPoints, 2);
-        Vector2[] points = GetPoints(numberOfPoints).ToArray();
+        var points = GetPoints(numberOfPoints).ToArray();
 
         for (int i = 0; i < numberOfPoints - 1; i++)
         {

@@ -4,7 +4,7 @@ using System.Threading;
 using ReLogic.Threading;
 
 // CREDIT: https://github.com/terraria-catalyst/nitrate-mod/blob/master/src/Nitrate/API/Threading/FasterParallel.cs
-namespace Experiments.Utils;
+namespace Experiments.Core;
 
 /// <summary>
 ///     A faster reimplementation of <see cref="FastParallel" />.
