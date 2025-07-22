@@ -114,7 +114,7 @@ public class TweenSystem : ModSystem
 
     internal void Register(ITween tween)
     {
-        if (tween != null && tween.IsAlive)
+        if (tween is { IsAlive: true })
         {
             _activeTweens.Add(tween);
         }
@@ -140,7 +140,7 @@ public class TweenSystem : ModSystem
         return new Tween<T>();
     }
 
-    internal Sequence GetSequence()
+    private Sequence GetSequence()
     {
         Type type = typeof(Sequence);
         if (_pool.TryGetValue(type, out var stack) && stack.Count > 0)
@@ -189,7 +189,7 @@ public class TweenSystem : ModSystem
         }
 
         var genericSetter = (Action<object, T>)genericSetterDelegate;
-        var setter = (Action<T>)(value => genericSetter(instance, value));
+        var setter = (Action<T>)(value => genericSetter?.Invoke(instance, value));
 
         return (getter, setter);
     }
